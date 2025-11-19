@@ -194,14 +194,56 @@
 
         <!-- 3. INVENTORY PAGE -->
         <div id="inventory-page" class="page">
-            <div class="flex justify-between items-end mb-6 border-b border-gray-700 pb-4">
-                <h2 class="text-3xl font-bold">
-                    Your Inventory
-                </h2>
-                <div class="text-gray-400 text-sm">
-                    Total Value: <span id="inventory-total-value" class="text-green-400 font-bold">$0.00</span>
+            <!-- Header & Controls -->
+            <div class="flex flex-col lg:flex-row justify-between items-end mb-4 border-b border-gray-700 pb-4 gap-4">
+                <div class="w-full lg:w-auto">
+                    <h2 class="text-3xl font-bold">Your Inventory</h2>
+                    <div class="text-gray-400 text-sm mt-1">
+                        Total Value: <span id="inventory-total-value" class="text-green-400 font-bold">$0.00</span>
+                    </div>
+                </div>
+                
+                <!-- Sort & Filter Controls -->
+                <div class="flex gap-2 w-full lg:w-auto">
+                    <select id="sort-select" class="bg-gray-700 text-white p-2 rounded text-sm border border-gray-600 outline-none focus:border-blue-500 flex-1">
+                        <option value="newest">Sort: Newest</option>
+                        <option value="value-desc" selected>Sort: High to Low</option>
+                        <option value="value-asc">Sort: Low to High</option>
+                        <option value="rarity">Sort: Rarity</option>
+                    </select>
+                    
+                    <select id="filter-select" class="bg-gray-700 text-white p-2 rounded text-sm border border-gray-600 outline-none focus:border-blue-500 flex-1">
+                        <option value="all">Filter: All Rarities</option>
+                        <option value="Mil-Spec">Mil-Spec (Blue)</option>
+                        <option value="Restricted">Restricted (Purple)</option>
+                        <option value="Classified">Classified (Pink)</option>
+                        <option value="Covert">Covert (Red)</option>
+                        <option value="Rare Special">Rare Special (Gold)</option>
+                    </select>
                 </div>
             </div>
+
+            <!-- Bulk Actions Panel -->
+            <div class="bg-gray-800 p-3 rounded-lg mb-4 flex flex-col sm:flex-row items-center justify-between border border-gray-700 gap-3">
+                <div class="flex items-center gap-2 text-gray-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    <span class="text-sm font-bold uppercase tracking-wider">Bulk Sell</span>
+                </div>
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <select id="bulk-rarity-select" class="bg-gray-900 text-white p-2 rounded text-sm border border-gray-600 outline-none focus:border-red-500 flex-grow">
+                        <option value="" disabled selected>Select Rarity...</option>
+                        <option value="Mil-Spec">Sell all Mil-Spec</option>
+                        <option value="Restricted">Sell all Restricted</option>
+                        <option value="Classified">Sell all Classified</option>
+                        <option value="Covert">Sell all Covert</option>
+                    </select>
+                    <button id="bulk-sell-btn" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded text-sm font-bold transition whitespace-nowrap shadow-lg">
+                        Sell
+                    </button>
+                </div>
+            </div>
+
+            <!-- Grid -->
             <div id="inventory-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-4 bg-gray-800 rounded-lg shadow-inner min-h-[300px]">
                 <!-- Inventory items will be rendered here -->
             </div>
@@ -222,8 +264,7 @@
             <!-- Modal Actions -->
             <div class="p-4 bg-gray-700/50 rounded-b-xl flex gap-3 justify-center">
                 <button id="modal-sell-btn" class="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex flex-col items-center justify-center leading-none">
-                    <span class="text-sm opacity-90 font-medium mb-1">Sell for</span>
-                    <span id="modal-sell-price" class="text-lg">$0.00</span>
+                    <!-- Content is dynamic -->
                 </button>
                 <button id="modal-close-btn" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-4 rounded-lg transition duration-200">
                     Collect
@@ -262,7 +303,7 @@
         
         const CASES = {
             'CS:GO Weapon Case': {
-                price: 7.99,
+                price: 2.50,
                 description: 'The original. High risk, high reward.',
                 image: 'https://cdn.csgoskins.gg/public/uih/products/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbl9jYXNlcy9jcmF0ZV92YWx2ZV8xLjIzYzc4M2QwMDViNDQ2YTEwMDRjOTcwNTdjZmI1YWMyZDhkYWUxODYucG5n/auto/auto/85/notrim/5ca053d2ed1cab5e64ec19204f6e4157.webp',
                 items: [
@@ -281,7 +322,7 @@
                 ],
             },
             'Operation Bravo Case': {
-                price: 5.50,
+                price: 2.50,
                 description: 'Classic collection featuring the Fire Serpent.',
                 image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbl9jYXNlcy9jcmF0ZV9vcGVyYXRpb25faWkuNWU1MTA0YTYyOTE3NDFjNTY5M2ExZTc4YmQ2ZWNjOTU2MGI1MWYwYS5wbmc-/auto/auto/85/notrim/e3493f6785b73327ce8cb43fe7b1f37f.webp', // Red
                 items: [
@@ -313,8 +354,12 @@
         let inventory = [];
         let balance = 1000.00;
         let currentCaseId = null;
-        let currentWinningItem = null; // Store the winner temporarily for modal logic
+        let currentWinningItem = null; 
         
+        // Inventory State
+        let currentSort = 'value-desc';
+        let currentFilter = 'all';
+
         // --- 3. DOM ELEMENTS ---
         const spinnerContainer = document.getElementById('spinner-container');
         const spinnerTrack = document.getElementById('spinner-track');
@@ -328,7 +373,7 @@
         const modalHeader = document.getElementById('modal-header-title');
         const modalContent = document.getElementById('modal-content');
         const modalSellBtn = document.getElementById('modal-sell-btn');
-        const modalSellPrice = document.getElementById('modal-sell-price');
+        // NOTE: Removed 'modalSellPrice' from global constants because its HTML is dynamic now.
         const modalCloseBtn = document.getElementById('modal-close-btn');
         
         const inventoryGrid = document.getElementById('inventory-grid');
@@ -337,6 +382,12 @@
         const caseGrid = document.getElementById('case-grid');
         const navLinks = document.querySelectorAll('.nav-link');
         const pages = document.querySelectorAll('.page');
+        
+        // Inventory Controls
+        const sortSelect = document.getElementById('sort-select');
+        const filterSelect = document.getElementById('filter-select');
+        const bulkRaritySelect = document.getElementById('bulk-rarity-select');
+        const bulkSellBtn = document.getElementById('bulk-sell-btn');
 
 
         // --- 4. ECONOMY LOGIC ---
@@ -346,7 +397,7 @@
             if (stored) {
                 balance = parseFloat(stored);
             } else {
-                balance = 50.00; // Default starting money
+                balance = 50.00; 
             }
             updateBalanceDisplay();
         }
@@ -444,11 +495,39 @@
                 return;
             }
             
-            // Sort by newness (ID is roughly chronological here due to append) or Value
-            // Let's sort by Value descending for better UX
-            const sortedInventory = [...inventory].sort((a, b) => b.value - a.value);
+            // 1. Filter
+            let displayItems = [...inventory];
+            if (currentFilter !== 'all') {
+                displayItems = displayItems.filter(item => item.rarity === currentFilter);
+            }
 
-            sortedInventory.forEach(item => {
+            // 2. Sort
+            displayItems.sort((a, b) => {
+                switch(currentSort) {
+                    case 'newest':
+                        return 0; // Natural order is usually mostly chronological
+                    case 'value-desc':
+                        return b.value - a.value;
+                    case 'value-asc':
+                        return a.value - b.value;
+                    case 'rarity':
+                        const rarityOrder = ['Rare Special', 'Covert', 'Classified', 'Restricted', 'Mil-Spec'];
+                        return rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity);
+                    default:
+                        return 0;
+                }
+            });
+
+            if (currentSort === 'newest') {
+                displayItems.reverse();
+            }
+
+            if (displayItems.length === 0) {
+                inventoryGrid.innerHTML = '<p class="text-gray-400 text-center col-span-full py-12">No items match filters.</p>';
+                return;
+            }
+
+            displayItems.forEach(item => {
                 const color = RARITY_COLORS[item.rarity];
                 const itemEl = document.createElement('div');
                 itemEl.className = 'item-card-inventory group';
@@ -475,7 +554,7 @@
         }
 
         function saveItemToInventory(item) {
-            item.id = crypto.randomUUID(); // Ensure ID is set
+            item.id = crypto.randomUUID(); 
             inventory.push(item);
             localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
         }
@@ -484,6 +563,65 @@
             inventory = inventory.filter(i => i.id !== itemId);
             localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
             renderInventory();
+        }
+
+        function handleBulkSell() {
+            const rarityToSell = bulkRaritySelect.value;
+            if (!rarityToSell) return;
+
+            // Find items
+            const itemsToSell = inventory.filter(item => item.rarity === rarityToSell);
+            
+            if (itemsToSell.length === 0) {
+                // Show "No items" modal
+                modalHeader.textContent = 'Bulk Sell';
+                modalContent.innerHTML = `<p class="text-center text-gray-300 text-lg my-4">You don't have any <span class="font-bold text-white">${rarityToSell}</span> items to sell.</p>`;
+                
+                modalSellBtn.style.display = 'none';
+                modalCloseBtn.textContent = 'OK';
+                modalCloseBtn.onclick = hideModal;
+                
+                resultModal.classList.remove('hidden');
+                resultModal.classList.add('visible');
+                return;
+            }
+
+            const totalValue = itemsToSell.reduce((sum, item) => sum + item.value, 0);
+            const count = itemsToSell.length;
+
+            // Show Confirmation Modal (replacing window.confirm)
+            modalHeader.textContent = 'Confirm Bulk Sell';
+            modalContent.innerHTML = `
+                <div class="text-center my-4">
+                    <p class="text-gray-300 text-lg mb-2">Are you sure you want to sell</p>
+                    <p class="text-2xl font-bold text-white mb-1">${count} x ${rarityToSell} items</p>
+                    <p class="text-gray-300 text-lg">for <span class="text-green-400 font-bold">$${totalValue.toFixed(2)}</span>?</p>
+                </div>
+            `;
+
+            // Configure Sell Button
+            modalSellBtn.style.display = 'flex'; // Ensure it's visible
+            modalSellBtn.innerHTML = `<span class="text-lg font-bold">CONFIRM SELL</span>`;
+            modalSellBtn.className = 'flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center';
+            
+            modalSellBtn.onclick = () => {
+                // Execute Sell
+                updateBalance(totalValue);
+                inventory = inventory.filter(item => item.rarity !== rarityToSell);
+                localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
+                
+                // Reset UI
+                bulkRaritySelect.value = "";
+                renderInventory();
+                hideModal();
+            };
+
+            // Configure Cancel Button
+            modalCloseBtn.textContent = 'Cancel';
+            modalCloseBtn.onclick = hideModal;
+
+            resultModal.classList.remove('hidden');
+            resultModal.classList.add('visible');
         }
         
 
@@ -523,7 +661,7 @@
             }
 
             const potentialItems = itemPool.filter(item => item.rarity === winningRarity);
-            const baseItem = potentialItems[Math.floor(Math.random() * potentialItems.length)] || itemPool[0]; // Fallback safety
+            const baseItem = potentialItems[Math.floor(Math.random() * potentialItems.length)] || itemPool[0]; 
 
             const { float, wear } = generateFloatAndWear();
 
@@ -652,9 +790,6 @@
             
             if (isInventoryItem) {
                 removeItemFromInventory(item.id);
-            } else {
-                // If unboxed, we simply don't save it.
-                // But visuals might be nice.
             }
             
             hideModal();
@@ -674,24 +809,28 @@
             modalContent.innerHTML = ''; 
             modalContent.appendChild(createItemElement(item, true));
             
-            modalSellPrice.textContent = `$${item.value.toFixed(2)}`;
+            // Reset the Sell Button to "Item Mode" (Green with Price)
+            modalSellBtn.style.display = 'flex';
+            modalSellBtn.className = 'flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex flex-col items-center justify-center leading-none';
+            modalSellBtn.innerHTML = `
+                <span class="text-sm opacity-90 font-medium mb-1">Sell for</span>
+                <span class="text-lg">$${item.value.toFixed(2)}</span>
+            `;
 
             // Configure Buttons based on context
             if (type === 'unbox') {
-                // Unbox Context: "Collect" (Save) or "Sell" (Discard + Money)
+                // Unbox Context
                 modalHeader.textContent = 'You Unboxed:';
                 modalCloseBtn.textContent = 'Collect Item';
                 
-                // Direct assignment overwrites previous listeners safely
                 modalSellBtn.onclick = () => sellItem(item, false);
                 modalCloseBtn.onclick = () => keepItem(item);
 
             } else {
-                // Inventory Context: "Close" (Do nothing) or "Sell" (Remove + Money)
+                // Inventory Context
                 modalHeader.textContent = 'Inspect Item';
                 modalCloseBtn.textContent = 'Close';
 
-                // Direct assignment overwrites previous listeners safely
                 modalSellBtn.onclick = () => sellItem(item, true);
                 modalCloseBtn.onclick = hideModal;
             }
@@ -710,6 +849,20 @@
         
         openButton.addEventListener('click', startSpin);
         backToCasesBtn.addEventListener('click', () => navigate('case-selection-page'));
+        
+        // Sort and Filter Listeners
+        sortSelect.addEventListener('change', (e) => {
+            currentSort = e.target.value;
+            renderInventory();
+        });
+        
+        filterSelect.addEventListener('change', (e) => {
+            currentFilter = e.target.value;
+            renderInventory();
+        });
+        
+        // Bulk Sell Listener
+        bulkSellBtn.addEventListener('click', handleBulkSell);
         
         resultModal.addEventListener('click', (e) => {
             if (e.target === resultModal) hideModal();
