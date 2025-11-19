@@ -1,1 +1,2 @@
-## casesimulator.github.io
+[## Play Here
+](https://casesimulator.github.io/casesimulator/)
