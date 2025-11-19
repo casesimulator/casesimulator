@@ -3,1454 +3,624 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>casesimulator.exe</title>
-    <link rel="icon" type="image/x-icon" href="https://i.postimg.cc/k5r6gxFH/casesimicon.png">
+    <title>CS2 Weapon Case</title>
+    <!-- 1. Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 2. Load Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        
-        /* Disable modern features */
-        * {
-            transition: none !important;
-            box-shadow: none !important;
-            border-radius: 0 !important;
-        }
-
-        /* Base colors (Windows 95/2000 Theme) */
-        :root {
-            --color-window-bg: #c0c0c0; /* Light Gray - Classic Windows background */
-            --color-control-bg: #dfdfdf; /* Off White/Silver - Control surface background */
-            --color-border-dark: #808080; /* Dark Gray - Border shadow */
-            --color-border-light: #ffffff; /* White - Border highlight */
-            --color-primary: #000080; /* Dark Blue - Title bar/Active color */
-            --color-text: #000000;
-        }
-
-        html, body {
-            height: 100%;
-            margin: 0;
-            font-family: 'Verdana', 'Tahoma', sans-serif; /* Pixel-friendly, classic fonts */
-            font-size: 13px; /* Smaller, classic font size */
-        }
-        
+        /* 3. Custom CSS */
         body {
-            /* --- MODIFIED FOR IMAGE BACKGROUND --- */
-            background-image: url('https://i.imgur.com/hKOGoex.jpeg');
-            background-size: cover; 
-            background-attachment: fixed; 
-            background-repeat: no-repeat;
-            background-color: var(--color-window-bg); /* Fallback/Blend color */
-            /* --- END MODIFICATION --- */
-            
-            color: var(--color-text);
-            display: flex;
-            flex-direction: column;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden; /* Prevents horizontal scrollbars */
             min-height: 100vh;
         }
-
-        /* Utility for 3D Border effect */
-        .classic-border {
-            border: 1px solid var(--color-text);
-            border-top: 1px solid var(--color-border-light);
-            border-left: 1px solid var(--color-border-light);
-            border-right: 1px solid var(--color-border-dark);
-            border-bottom: 1px solid var(--color-border-dark);
-        }
-
-        .classic-inset {
-            border: 1px solid var(--color-text);
-            border-top: 1px solid var(--color-border-dark);
-            border-left: 1px solid var(--color-border-dark);
-            border-right: 1px solid var(--color-border-light);
-            border-bottom: 1px solid var(--color-border-light);
-        }
-
-        /* Rarity color classes (Mapped to CS:GO colors, but with classic styling) */
-        .rarity-common, .border-rarity-common { color: #555555; border-color: #555555; } /* Darker Gray */
-        .rarity-uncommon, .border-rarity-uncommon { color: #0000ff; border-color: #0000ff; } /* Pure Blue */
-        .rarity-rare, .border-rarity-rare { color: #8000ff; border-color: #8000ff; } /* Purple */
-        .rarity-legendary, .border-rarity-legendary { color: #ff00ff; border-color: #ff00ff; } /* Magenta */
-        .rarity-ancient, .border-rarity-ancient { color: #ff8000; border-color: #ff8000; } /* Orange */
-        .rarity-covert, .border-rarity-covert { color: #ff0000; border-color: #ff0000; } /* Pure Red */
-        .rarity-contraband, .border-rarity-contraband { color: #000000 !important; border-color: #000000 !important; }
-        .rarity-exceedingly-rare, .border-rarity-exceedingly-rare {
-            color: #800000; /* Dark Gold/Brown default */
-            border-color: #800000;
-        }
-        .rarity-exceedingly-rare { 
-            font-weight: bold; 
-            /* NEW: Apply the rainbow animation for the exceedingly rare item text */
-            animation: rainbowFlash 0.5s infinite steps(1); 
-        } 
         
-        /* NEW: Keyframes for Rainbow Flash (Exceedingly Rare) */
-        @keyframes rainbowFlash {
-            0%   { color: #ff0000; } /* Red */
-            14%  { color: #ff7f00; } /* Orange */
-            28%  { color: #ffff00; } /* Yellow */
-            42%  { color: #00ff00; } /* Green */
-            57%  { color: #0000ff; } /* Blue */
-            71%  { color: #4b0082; } /* Indigo */
-            85%  { color: #9400d3; } /* Violet */
-            100% { color: #ff0000; }
-        }
-        
-        /* Title Bar style for internal containers */
-        .classic-title-bar {
-            background-color: var(--color-primary);
-            color: var(--color-border-light); /* Sets text color to white */
-            padding: 2px 4px;
-            font-weight: bold;
-            margin-bottom: 8px;
-            /* Boxy inner border for separation */
-            border-bottom: 1px solid var(--color-text);
+        /* The container for the spinner items */
+        #spinner-track {
+            display: flex;
+            height: 100%;
+            /* The transition is what creates the "spin" animation */
+            /* We use cubic-bezier for a realistic "slow down" effect */
+            transition: transform 6s cubic-bezier(0.1, 0.6, 0.1, 1);
         }
 
-        /* Navigation button styles */
-        .nav-button {
-            background-color: var(--color-control-bg);
-            border: 1px solid var(--color-text);
-            border-top: 1px solid var(--color-border-light);
-            border-left: 1px solid var(--color-border-light);
-            border-right: 1px solid var(--color-border-dark);
-            border-bottom: 1px solid var(--color-border-dark);
-            font-weight: bold;
-            color: var(--color-text);
-            padding: 6px 8px; /* Classic padding */
-        }
-        .nav-button:hover {
-            background-color: var(--color-window-bg);
-        }
-        .active-nav-button {
-            /* Active button looks like it's pressed (inset border) */
-            background-color: var(--color-control-bg) !important;
-            border: 1px solid var(--color-text) !important;
-            border-top: 1px solid var(--color-border-dark) !important;
-            border-left: 1px solid var(--color-border-dark) !important;
-            border-right: 1px solid var(--color-border-light) !important;
-            border-bottom: 1px solid var(--color-border-light) !important;
+        /* Each item in the spinner */
+        .item-card {
+            /* CRITICAL: We use a fixed px width to make calculations reliable. */
+            width: 160px;
+            height: 100%;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            box-sizing: border-box; 
+            background-color: #2d3748; /* bg-gray-800 */
+            border-left: 1px solid #4a5568; /* border-gray-700 */
+            border-right: 1px solid #4a5568; /* border-gray-700 */
+            user-select: none; 
         }
 
-        /* Main action buttons */
-        .action-button {
-            background-color: var(--color-control-bg);
-            color: var(--color-text);
-            font-weight: bold;
-            padding: 8px 12px;
-            cursor: pointer;
-        }
-        .action-button:active {
-            border-top: 1px solid var(--color-border-dark) !important;
-            border-left: 1px solid var(--color-border-dark) !important;
-            border-right: 1px solid var(--color-border-light) !important;
-            border-bottom: 1px solid var(--color-border-light) !important;
-        }
-        .action-button:disabled {
-            color: var(--color-border-dark);
-            cursor: not-allowed;
-        }
-        
-        /* Specific overrides for color buttons (Sell/Keep/Open) */
-        .bg-green-600 { background-color: #008000 !important; color: white !important;} /* Dark Green */
-        .bg-blue-600 { background-color: #0000ff !important; color: white !important;} /* Pure Blue */
-        .bg-purple-600 { background-color: #800080 !important; color: white !important;} /* Dark Purple */
-        .bg-red-600 { background-color: #ff0000 !important; color: white !important;} /* Pure Red */
-        .bg-orange-600 { background-color: #ff8000 !important; color: white !important;} /* Orange */
-        .bg-gray-600 { background-color: var(--color-border-dark) !important; color: var(--color-control-bg) !important;} /* Disabled Gray */
-
-        /* Inventory Item Styles */
-        .inventory-grid-item {
-            /* Use inset border for item display areas */
-            border: 2px solid var(--color-control-bg); 
-            background-color: var(--color-control-bg); 
-            border-top: 2px solid var(--color-border-dark);
-            border-left: 2px solid var(--color-border-dark);
-            border-right: 2px solid var(--color-border-light);
-            border-bottom: 2px solid var(--color-border-light);
-        }
-        .selected-for-tradeup {
-            outline: 3px dashed #ff0000 !important; /* Classic dashed outline */
-            outline-offset: -3px;
+        .item-card img {
+            width: 120px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
         }
 
-        /* --- MODAL FIX START (Fade instead of Slide) --- */
-        .modal-hidden {
-            visibility: hidden; 
-            opacity: 0;
-            transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
-        }
-        .modal-visible {
-            visibility: visible;
-            opacity: 1;
-            transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
-        }
-        /* --- MODAL FIX END --- */
-        
-        /* Modal content styles (the internal window) */
-        .modal-content {
-            background-color: var(--color-control-bg);
-            color: var(--color-text);
+        /* Inventory Item Card Styling (Used in the Inventory Grid) */
+        .item-card-inventory {
+            width: 100%;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #1a202c; /* dark background for items */
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
             padding: 8px;
-            /* Outer 3D border for the window */
-            border: 2px solid var(--color-text);
-            border-top: 2px solid var(--color-border-light);
-            border-left: 2px solid var(--color-border-light);
-            border-right: 2px solid var(--color-border-dark);
-            border-bottom: 2px solid var(--color-border-dark);
-            /* Remove scaling transform */
-            transform: none !important; 
+            position: relative;
+            cursor: pointer; /* Indicate it's clickable */
+            transition: transform 0.15s ease, opacity 0.15s ease;
+        }
+        .item-card-inventory:hover {
+            transform: scale(1.03);
+            opacity: 0.95;
+        }
+        .item-card-inventory img {
+            width: 80px;
+            height: 60px;
         }
 
-        /* Utility for Notifications: Fade instead of Slide */
-        .notification-fade-in {
+        /* The "ticker" that shows where the spinner will land (Back to Yellow) */
+        #ticker {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, #fde047, transparent); /* yellow-400 */
+            z-index: 10;
+            box-shadow: 0 0 10px #fde047;
+        }
+
+        /* Modal styles */
+        .modal {
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+        .modal.hidden {
             opacity: 0;
-            transition: opacity 0.4s ease-out;
+            visibility: hidden;
         }
-        .notification-visible {
+        .modal.visible {
             opacity: 1;
+            visibility: visible;
         }
-        
-        /* Override for modern classes to fit classic style */
-        /* Removed .text-white { color: var(--color-text) !important; } to allow white text */
-        .text-gray-400, .text-gray-500 { color: var(--color-border-dark) !important; }
-        .text-green-400 { color: #008000 !important; } /* Dark Green for money */
-        .text-yellow-400 { color: #808000 !important; } /* Dark Yellow/Olive for messages */
-        .text-indigo-400 { color: var(--color-primary) !important; }
 
-        /* Remove custom scrollbar styling as it's modern */
-        ::-webkit-scrollbar { display: none; }
-        /* Remove modern animations */
-        @keyframes reveal { 0% { opacity: 0; } 100% { opacity: 1; } }
-        .item-reveal { animation: reveal 0.1s ease-out; }
-        
-        /* Rate-limit text style */
-        .text-red-400 { color: #ff0000 !important; }
-
+        /* Inventory Toggle Transition */
+        #inventory-section {
+            max-height: 0;
+            transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out;
+            overflow: hidden;
+        }
+        #inventory-section.open {
+            max-height: 1000px; /* Large enough to accommodate content */
+            padding-top: 1.5rem;
+        }
     </style>
 </head>
-<body class="p-4 flex flex-col min-h-screen">
+<body class="bg-gray-900 text-white flex flex-col items-center p-4">
 
-    <div class="max-w-6xl mx-auto flex flex-col flex-grow w-full">
-        <div class="classic-border bg-gray-200 p-1 flex gap-2 flex-grow overflow-hidden">
-            
-            <aside class="w-48 bg-gray-200 p-2 flex-shrink-0 flex flex-col classic-inset">
-                <div class="classic-title-bar">
-                    Menu
-                </div>
-                <div class="space-y-2 flex-grow">
-                    <button data-view="earn" class="nav-button active-nav-button w-full text-left">
-                        Earn Cash
-                    </button>
-                    <button data-view="case" class="nav-button w-full text-left">
-                        Open Cases
-                    </button>
-                    <button data-view="inventory" class="nav-button w-full text-left">
-                        Inventory
-                    </button>
-                    <button data-view="shop" class="nav-button w-full text-left">
-                        Shop
-                    </button>
-                    <button data-view="tradeup" class="nav-button w-full text-left">
-                        Trade-Up Contract
-                    </button>
-                    <button data-view="settings" class="nav-button w-full text-left">
-                        Settings
-                    </button>
-                    </div>
-                
-                <div class="classic-inset p-2 mt-4 text-center flex-shrink-0">
-                    <div class="text-center">
-                        <span class="text-gray-400 text-xs block">Current Cash:</span>
-                        <span id="moneyDisplay" class="text-lg font-bold text-green-400">$0.00</span>
-                    </div>
-                </div>
-
-                <div class="mt-4 flex-shrink-0 space-y-2">
-                    </div>
-                </aside>
-
-            <main id="mainContent" class="flex-grow overflow-hidden classic-inset p-2 bg-gray-100">
-
-                <div id="earnView" class="view h-full flex flex-col">
-                    <div class="classic-title-bar">
-                        Earn Cash
-                    </div>
-                    <div class="flex flex-col items-center justify-center flex-grow p-4 classic-inset bg-white">
-                        <p class="text-gray-400 mb-6 max-w-sm text-center">
-                            Click the button below to earn cash. Do not click too fast!
-                        </p>
-                        <button id="workButton" class="action-button w-1/2 min-w-[150px] bg-blue-600 classic-border text-lg">
-                            +$0.50
-                        </button>
-                    </div>
-                </div>
-
-                <div id="caseView" class="view hidden h-full flex flex-col">
-                    <div class="classic-title-bar flex items-center justify-between">
-                        Open Cases
-                        <div class="relative group">
-                            <span class="text-base font-bold cursor-pointer underline hover:no-underline">ODDS</span>
-                            <div id="oddsTooltip" class="absolute right-0 top-6 w-56 p-2 classic-inset bg-gray-200 text-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible z-10 whitespace-nowrap text-black">
-                                </div>
-                        </div>
-                    </div>
-                    
-                    <div id="resultBox" class="w-full flex flex-col items-center justify-center p-4 classic-inset bg-white border-2 border-solid border-gray-400 transition-all duration-300 min-h-[200px] mb-2 flex-grow">
-                        <span class="text-gray-400">Open a case to see your item!</span>
-                    </div>
-                    
-                    <div id="itemActions" class="w-full flex gap-2 flex-shrink-0">
-                        <button id="instantSellButton" class="action-button flex-1 classic-border" disabled>
-                            Instant Sell ($0.00)
-                        </button>
-                        <button id="openCaseButton" class="action-button flex-1 classic-border" disabled>
-                            Open Case ($5.00)
-                        </button>
-                        <button id="keepItemButton" class="action-button flex-1 classic-border" disabled>
-                            Keep Item
-                        </button>
-                    </div>
-                </div>
-
-                <div id="inventoryView" class="view hidden flex flex-col h-full">
-                    <div class="classic-title-bar">
-                        Inventory
-                    </div>
-                    <div id="inventoryLog" class="flex-grow overflow-y-auto p-2 grid grid-cols-3 lg:grid-cols-5 gap-2 classic-inset bg-white min-h-0">
-                        <div class="text-gray-400 text-center col-span-full pt-4">The items you own will be kept here.</div>
-                    </div>
-                </div>
-                
-                <div id="shopView" class="view hidden h-full flex flex-col">
-                    <div class="classic-title-bar">
-                        Shop
-                    </div>
-                    <div class="flex flex-col flex-grow p-4 classic-inset bg-white">
-                        <h4 class="text-lg font-bold mb-4">Available Items</h4>
-                        
-                        <div class="classic-border p-4 mb-4 flex items-center justify-between bg-gray-100">
-                            <div class="flex flex-col">
-                                <span class="text-xl font-bold text-blue-600">Nametag Kit</span>
-                                <span class="text-sm text-gray-500">Apply a custom name to any weapon. (24 Chars Max)</span>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-md font-bold text-green-400 block mb-2">Cost: $1,000.00</span>
-                                <button id="buyNametagButton" class="action-button bg-blue-600 classic-border text-lg" disabled>
-                                    Buy (Owned: 0)
-                                </button>
-                            </div>
-                        </div>
-
-                        <p class="text-gray-400 mt-auto text-center">More items coming soon!</p>
-                    </div>
-                </div>
-
-                <div id="settingsView" class="view hidden h-full flex flex-col">
-                    <div class="classic-title-bar">
-                        Settings
-                    </div>
-                    <div class="flex flex-col flex-grow p-4 classic-inset bg-white space-y-4">
-                        
-                        <div class="classic-border p-4 bg-gray-100">
-                            <h4 class="text-lg font-bold mb-2">Game Progress</h4>
-                            <div class="space-y-2">
-                                <button id="saveGameButton" class="action-button w-full text-left py-2 px-3 classic-border bg-green-600 text-center">
-                                    Save Progress (Manually)
-                                </button>
-                                <button id="resetGameButton" class="action-button w-full text-left py-2 px-3 classic-border bg-red-600 text-center">
-                                    Reset Game (Danger Zone)
-                                </button>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-                <div id="tradeupView" class="view hidden flex flex-col h-full">
-                    <div class="classic-title-bar">
-                        Trade-Up Contract
-                    </div>
-                    
-                    <div class="flex flex-col md:flex-row gap-2 mb-2 flex-shrink-0 text-sm">
-                        <div id="tradeupInputStatus" class="flex-1 p-2 classic-inset bg-white">
-                            <p class="font-bold mb-1 text-red-600">Input Items (10 required)</p>
-                            <p id="tradeupCount" class="text-lg font-bold">0 / 10</p>
-                            <p id="tradeupRarity" class="text-gray-400 mt-1">Select items of the same rarity.</p>
-                        </div>
-
-                        <div id="tradeupOutputStatus" class="flex-1 p-2 classic-inset bg-white">
-                            <p class="font-bold mb-1 text-green-400">Guaranteed Output</p>
-                            <p id="tradeupOutputName" class="text-lg font-bold">???</p>
-                            <p id="tradeupOutputOdds" class="text-gray-400 mt-1">Rarity: N/A</p>
-                        </div>
-                    </div>
-
-                    <button id="executeTradeUpButton" class="action-button w-full bg-gray-600 classic-border mb-2 flex-shrink-0" disabled>
-                        Execute Trade-Up (10 Items)
-                    </button>
-
-                    <div id="tradeupInventoryLog" class="flex-grow overflow-y-auto p-2 grid grid-cols-3 lg:grid-cols-5 gap-2 classic-inset bg-white min-h-0">
-                        <div class="text-gray-400 text-center col-span-full pt-4">Your eligible items will appear here for selection.</div>
-                    </div>
-                </div>
-
-                </main>
+    <div class="w-full max-w-6xl">
+        <div class="flex justify-between items-start mb-6 w-full">
+            <h1 class="text-4xl font-black tracking-tighter">
+                Weapon Case
+            </h1>
+            <button id="inventory-toggle-button" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition duration-200">
+                View Inventory
+            </button>
         </div>
+    </div>
+
+    <!-- 
+      This is the main spinner viewport. 
+    -->
+    <div id="spinner-container" class="relative w-full max-w-6xl h-44 bg-gray-900 border-4 border-gray-700 rounded-lg overflow-hidden shadow-2xl">
+        <!-- The ticker line -->
+        <div id="ticker"></div>
         
+        <!-- The track that holds all the items and moves -->
+        <div id="spinner-track">
+            <!-- Items will be dynamically generated by JavaScript -->
+        </div>
     </div>
 
-    <div id="notificationContainer" class="fixed bottom-4 right-4 z-50 flex flex-col-reverse space-y-2"></div>
-    
-    <div id="inventoryModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 modal-hidden">
-        <div id="modalContent" class="modal-content w-11/12 max-w-sm">
+    <!-- Controls -->
+    <div class="mt-8 flex space-x-4">
+        <button id="open-button" class="bg-blue-600 hover:bg-blue-700 text-white text-xl font-bold py-4 px-10 rounded-lg shadow-lg transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed">
+            Open Case
+        </button>
+    </div>
+
+    <!-- Inventory Section -->
+    <div id="inventory-section" class="w-full max-w-6xl mt-0 transition duration-500">
+        <h2 class="text-3xl font-bold text-center mb-6 pt-6 border-t border-gray-700">
+            Your Inventory
+        </h2>
+        <div id="inventory-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <!-- Inventory items will be rendered here -->
+        </div>
+    </div>
+
+
+    <!-- 
+      This is the result modal, reused for both unbox and inventory stats. 
+    -->
+    <div id="result-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <!-- Modal Overlay -->
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative z-10 bg-gray-800 w-full max-w-md rounded-xl shadow-xl border border-gray-700">
+            <h2 id="modal-header-title" class="text-3xl font-bold text-center p-6 bg-gray-700/50 rounded-t-xl">
+                Unboxed:
+            </h2>
+            
+            <!-- Content where the item card will be injected -->
+            <div id="modal-content" class="p-8 flex flex-col items-center">
+                <!-- Won item will be generated by JS -->
             </div>
+            
+            <div class="p-6 bg-gray-700/50 rounded-b-xl text-center">
+                <button id="close-modal-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition duration-200">
+                    Add to Inventory
+                </button>
+            </div>
+        </div>
     </div>
 
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- STATE ---
-            let money = 0;
-            let lastItem = null; 
-            const caseCost = 5.00;
-            const workAmount = 0.50; 
-            
-            let clickTimestamps = [];
-            let isRateLimited = false; 
-            const TIME_WINDOW_MS = 5000; 
-            const MAX_CLICKS_IN_WINDOW = 20; 
-            
-            let inventory = [];
-            let sellHistory = [];
-            let selectedItemIndex = null; 
+    <script type="module">
+        // --- 1. CONFIGURATION ---
 
-            const TRADE_UP_COUNT = 10;
-            let selectedTradeUpIndices = []; 
-            let requiredTradeUpRarity = null; 
+        // Map rarities to their colors for the card border
+        const RARITY_COLORS = {
+            'Covert': '#EB445A',       // Red
+            'Classified': '#D32CE6',   // Pink
+            'Restricted': '#8847FF',   // Purple
+            'Mil-Spec': '#4E6AFF',     // Blue
+            'Rare Special': '#FFD700', // Gold
+        };
+        
+        // Base URL for reliable, simple image placeholders
+        const PLACEHOLDER_BASE_URL = 'https://placehold.co/120x80/1f2937/FFFFFF?text=';
+
+        /**
+         * EASILY EDITABLE ODDS CONFIGURATION
+         */
+        const RARITY_WEIGHTS = [
+            { rarity: 'Rare Special', cumulativeWeight: 0.0026 }, 
+            { rarity: 'Covert', cumulativeWeight: 0.0064 },       
+            { rarity: 'Classified', cumulativeWeight: 0.032 },   
+            { rarity: 'Restricted', cumulativeWeight: 0.1598 },   
+            { rarity: 'Mil-Spec', cumulativeWeight: 1.00 },     
+        ];
+
+        // Price ranges for item value generation (USD)
+        const PRICE_RANGES = {
+            'Mil-Spec': { min: 1.00, max: 5.00 },
+            'Restricted': { min: 5.00, max: 25.00 },
+            'Classified': { min: 25.00, max: 150.00 },
+            'Covert': { min: 150.00, max: 1000.00 },
+            'Rare Special': { min: 1000.00, max: 5000.00 },
+        };
+        
+        // The list of all possible items in the case (using reliable placeholders)
+        const CASE_ITEMS = [
+            // Rare Special (Knives) - Gold
+            { name: '★ Karambit | Vanilla', rarity: 'Rare Special', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbnMvYmFzZV93ZWFwb25zL3dlYXBvbl9rbmlmZV9rYXJhbWJpdC4zMTQzNTI0MzE3ODMwYjY2OGVkMTdkMTgzYzlhZmVhMDc2ZmNiMTNiLnBuZw--/auto/auto/85/notrim/6223c0d549d5910e00ab6df4a873fb6b.webp' },
+            { name: '★ Bayonet | Fade', rarity: 'Rare Special', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9iYXlvbmV0X2FhX2ZhZGVfbGlnaHQuNmMyYTNmNDc5NzVlMGRkNTAwODYyNTk2ZTRhNzI2ZTgzYTY0MTE1NS5wbmc-/auto/auto/85/notrim/c90ea76d2766bc3780e548310326f17d.webp' },
+            { name: '★ Gut Knife | Safari Mesh', rarity: 'Rare Special', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9rbmlmZV9ndXRfc3BfbWVzaF90YW5fbGlnaHQuYmZkOWVhMDY5OGIyNDY5YzE5NDgxMmY5NWIxMDMwMDU0OTc3NTFhNy5wbmc-/auto/auto/85/notrim/fa6c8b52b1dac3098017c79eb364e638.webp' },
             
-            let nametagCount = 0; 
-            const nametagCost = 1000.00; 
-            // END NEW NAMETAG STATE
+            // Covert (Reds) - Red
+            { name: 'AWP | Lightning Strike', rarity: 'Covert', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hd3BfYW1fbGlnaHRuaW5nX2F3cF9saWdodC5lZjU0ODcxOTU5YjY1NjE0MWIyNDY5MTI1NmRiYjFkNTQ5YjFlZmJhLnBuZw--/auto/auto/85/notrim/12c1e08907cf2fb660228a4ad6b33c80.webp' },
 
-            // --- WEAR TIERS ---
-            const wearTiers = [
-                { name: "Factory New", min: 0.00, max: 0.07 },
-                { name: "Minimal Wear", min: 0.07, max: 0.15 },
-                { name: "Field-Tested", min: 0.15, max: 0.38 },
-                { name: "Well-Worn", min: 0.38, max: 0.45 },
-                { name: "Battle-Scarred", min: 0.45, max: 1.00 }
-            ];
+            // Classified (Pinks) - Pink
+            { name: 'AK-47 | Case Hardened', rarity: 'Classified', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hazQ3X2FxX29pbGVkX2xpZ2h0LmNkMjQxYjIzZjRmYWMyNGQ0NTQyODExZDU1YjIzMTJiMDEzYWY5MTkucG5n/auto/auto/85/notrim/6cd121358f75fbc0574f6b80ffd79d28.webp' },
+            { name: 'Desert Eagle | Hypnotic', rarity: 'Classified', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9kZWFnbGVfYWFfdmVydGlnb19saWdodC5kNTJmMjdmMDQyMGNkYTQ1ZDMzNTM1ZGExMDA0NjI1ZDU3YTlkYzE1LnBuZw--/auto/auto/85/notrim/86b526041421c2c809df880fc84b6746.webp' },
+            
+            // Restricted (Purples) - Purple
+            { name: 'Glock-18 | Dragon Tattoo', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9nbG9ja19hbV9kcmFnb25fZ2xvY2tfbGlnaHQuMjM2YjU4MGVkZjkwMWVhODc5YTAyYjhlYzQzYWI5YzA5MDBhZmZkMy5wbmc-/auto/auto/85/notrim/709be5a02993a2ff20ca1101fe45aca2.webp' },
+            { name: 'M4A1-S | Dark Water', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tNGExX3NpbGVuY2VyX2FtX3plYnJhX2RhcmtfbGlnaHQuNGMwNzFjYjE0ZWY3NjQ5Y2Q4YzI0MDVhN2QxODI4NGMxYTk1NTYzYi5wbmc-/auto/auto/85/notrim/16a6beda414c67834fd06f5b7de7d1ad.webp' },
+            { name: 'USP-S | Dark Water', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl91c3Bfc2lsZW5jZXJfYW1femVicmFfZGFya19saWdodC5mYmRkMWJjMWViNmNmOWNmYzdkZTE5YWNmZjc2YjYwZWFjYWExYzhlLnBuZw--/auto/auto/85/notrim/60b0ac168a7199430c43412da21b83fa.webp' },
 
-            function getWearName(floatValue) {
-                for (const tier of wearTiers) {
-                    if (floatValue >= tier.min && floatValue <= tier.max) {
-                        return tier.name;
-                    }
+            // Mil-Spec (Blues) - Blue
+            { name: 'MP7 | Skulls', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tcDdfaHlfc2t1bGxzX2xpZ2h0LjVjYmJkMDI5ZGYzZDY3NmZmZTM0N2E0N2JkODc1MjgxMjc3MDBmOTAucG5n/auto/auto/85/notrim/644b2b252cdf7c9d681965ee7553a1b1.webp' },
+            { name: 'SG 553 | Ultravoilet', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9zZzU1Nl9zb19wdXJwbGVfbGlnaHQuYzMzODYyYzkxOGQ4NGZmNTAwNDE1NWU2MmQ4ODQ2ZDMxZTMzMDhhMS5wbmc-/auto/auto/85/notrim/adba0de5eda0e04f857c137bd4cb88f8.webp' },
+            { name: 'AUG | Wings', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hdWdfaHlfZmVhdGhlcnNfYXVnX2xpZ2h0LjQyN2EzMzlkYTc1MzU0OWMwMzA2Mzk3ZTY3NmQ2YmRmZTAwMmI3MGMucG5n/auto/auto/85/notrim/1d8c1432c5efdbe1243ada47b0891fb0.webp' },
+        ];
+        
+        // The fixed width of a single item card in pixels
+        const ITEM_WIDTH_PX = 160;
+
+        // The number of items to show in the spinner reel
+        const REEL_LENGTH = 100;
+
+        // --- 2. STATE VARIABLES ---
+        let inventory = [];
+        // Refactored: Global context for the modal button action
+        let modalContext = { 
+            action: 'close', // 'close' or 'save'
+            item: null       // The item object to save, if action is 'save'
+        };
+        
+        // --- 3. DOM ELEMENTS ---
+        const spinnerContainer = document.getElementById('spinner-container');
+        const spinnerTrack = document.getElementById('spinner-track');
+        const openButton = document.getElementById('open-button');
+        const resultModal = document.getElementById('result-modal');
+        const modalHeader = document.getElementById('modal-header-title');
+        const modalContent = document.getElementById('modal-content');
+        const closeModalButton = document.getElementById('close-modal-button');
+        const inventorySection = document.getElementById('inventory-section');
+        const inventoryToggleButton = document.getElementById('inventory-toggle-button');
+        const inventoryGrid = document.getElementById('inventory-grid');
+
+
+        // --- 4. INVENTORY LOGIC (localStorage) ---
+
+        /**
+         * Renders the current in-memory inventory state to the DOM.
+         */
+        function renderInventory() {
+            if (!inventoryGrid) return;
+            
+            inventoryGrid.innerHTML = '';
+            if (inventory.length === 0) {
+                inventoryGrid.innerHTML = '<p class="text-gray-400 text-center col-span-full py-8 text-lg">Your inventory is empty. Open a case to win an item!</p>';
+                return;
+            }
+            
+            inventory.forEach(item => {
+                const color = RARITY_COLORS[item.rarity];
+                const itemEl = document.createElement('div');
+                itemEl.className = 'item-card-inventory transition duration-150 hover:scale-[1.02]';
+                itemEl.style.borderBottom = `4px solid ${color}`;
+                
+                // Attach click listener here to open the stats modal
+                itemEl.addEventListener('click', () => showInventoryStatsModal(item));
+
+                // Extract Wear Acronym (e.g., FN, MW)
+                const wearAcronym = item.wear ? item.wear.match(/\((.*?)\)/)?.[1] || '' : '';
+
+                itemEl.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}" onerror="this.src='https://placehold.co/80x60/2d3748/FFF?text=Image+Error'">
+                    <p class="text-xs font-semibold mt-2 text-white text-center">${item.name}</p>
+                    <p class="text-xs text-green-400 font-bold mt-1">$${item.value.toFixed(2)}</p>
+                    <span class="absolute top-1 right-1 text-[10px] font-bold bg-gray-900/70 px-1 rounded-bl-lg">${wearAcronym}</span>
+                `;
+                inventoryGrid.appendChild(itemEl);
+            });
+        }
+
+        /**
+         * Loads the inventory from browser's localStorage.
+         */
+        function loadInventory() {
+            const storedInventory = localStorage.getItem('cs2_inventory');
+            inventory = storedInventory ? JSON.parse(storedInventory) : [];
+            
+            // Sort inventory by rarity (Gold first, then Red, Pink, Purple, Blue)
+            inventory.sort((a, b) => {
+                const order = ['Rare Special', 'Covert', 'Classified', 'Restricted', 'Mil-Spec'];
+                return order.indexOf(a.rarity) - order.indexOf(b.rarity);
+            });
+            
+            renderInventory();
+        }
+
+        /**
+         * Saves a newly unboxed item to the browser's localStorage and updates the UI.
+         * @param {Object} item - The item object to save.
+         */
+        function saveItemToInventory(item) {
+            // Load existing inventory from local storage
+            let currentInventory = JSON.parse(localStorage.getItem('cs2_inventory') || '[]');
+            
+            // Add the new item
+            currentInventory.push({ 
+                id: crypto.randomUUID(), // Assign a unique ID locally
+                ...item 
+            });
+            
+            // Save back to local storage
+            localStorage.setItem('cs2_inventory', JSON.stringify(currentInventory));
+            console.log("Item saved to local storage:", item.name);
+            
+            // Update the in-memory state and re-render the inventory
+            inventory = currentInventory;
+            renderInventory();
+            
+            // FIX: Open the inventory if it's closed to provide immediate visual feedback
+            if (!inventorySection.classList.contains('open')) {
+                toggleInventory();
+            }
+        }
+        
+
+        // --- 5. CORE SIMULATOR FUNCTIONS ---
+
+        /**
+         * Generates a random float value (wear) and determines the wear category.
+         */
+        function generateFloatAndWear() {
+            const float = (Math.random() * 0.9999).toFixed(4); // 0.0000 to 0.9999
+            let wear = '';
+            const f = parseFloat(float);
+
+            // CS2 Wear Tiers:
+            if (f >= 0.00 && f <= 0.07) wear = 'Factory New (FN)';
+            else if (f > 0.07 && f <= 0.15) wear = 'Minimal Wear (MW)';
+            else if (f > 0.15 && f <= 0.38) wear = 'Field-Tested (FT)';
+            else if (f > 0.38 && f <= 0.45) wear = 'Well-Worn (WW)';
+            else wear = 'Battle-Scarred (BS)';
+
+            return { float, wear };
+        }
+
+        /**
+         * Generates a random value for the item based on its rarity.
+         */
+        function generateItemValue(rarity) {
+            const range = PRICE_RANGES[rarity] || PRICE_RANGES['Mil-Spec'];
+            const min = range.min;
+            const max = range.max;
+            
+            // Generate a random number within the defined range
+            const value = (Math.random() * (max - min) + min).toFixed(2);
+            return parseFloat(value);
+        }
+
+        /**
+         * Picks a random item from the CASE_ITEMS list using the defined rarity weights
+         * and generates its unique properties (Value, Float, Pattern ID).
+         */
+        function pickRandomItem() {
+            const roll = Math.random(); // A random number between 0 (inclusive) and 1 (exclusive)
+            let winningRarity = 'Mil-Spec'; // Default to the commonest tier
+            
+            // 1. Determine Rarity
+            for (const weight of RARITY_WEIGHTS) {
+                if (roll <= weight.cumulativeWeight) { // Use <= for floating point comparison to favor the tier
+                    winningRarity = weight.rarity;
+                    break;
                 }
-                return "Battle-Scarred";
             }
 
-            // --- ITEM DATABASE ---
-            const rarities = [
-                { name: "Consumer Grade", probability: 0.50, minSell: 0.10, maxSell: 1.00, colorClass: 'rarity-common' },
-                { name: "Industrial Grade", probability: 0.25, minSell: 1.00, maxSell: 3.00, colorClass: 'rarity-uncommon' },
-                { name: "Mil-Spec", probability: 0.12, minSell: 3.00, maxSell: 8.00, colorClass: 'rarity-rare' },
-                { name: "Restricted", probability: 0.06, minSell: 15.00, maxSell: 45.00, colorClass: 'rarity-legendary' }, 
-                { name: "Classified", probability: 0.04, minSell: 50.00, maxSell: 120.00, colorClass: 'rarity-ancient' }, 
-                { name: "Covert", probability: 0.025, minSell: 150.00, maxSell: 450.00, colorClass: 'rarity-covert' }, 
-                { name: "Extraordinary", probability: 0.0048, minSell: 500.00, maxSell: 1500.00, colorClass: 'rarity-exceedingly-rare' },
-                { name: "Contraband", probability: 0.0002, minSell: 1500.00, maxSell: 4500.00, colorClass: 'rarity-contraband' }
-            ]; 
+            // 2. Filter item pool
+            const potentialItems = CASE_ITEMS.filter(item => item.rarity === winningRarity);
             
-            const rarityMap = rarities.reduce((map, rarity) => {
-                map[rarity.name] = rarity;
-                return map;
-            }, {});
+            // 3. Select base item
+            const baseItem = potentialItems[Math.floor(Math.random() * potentialItems.length)];
 
-            function getNextRarity(currentRarityName) {
-                const currentIndex = rarities.findIndex(r => r.name === currentRarityName);
-                if (currentIndex === -1 || currentIndex >= rarities.length - 1) { 
-                    return null;
-                }
-                return rarities[currentIndex + 1];
-            }
+            // 4. Generate unique properties (Float, Wear, Value, Pattern ID)
+            const { float, wear } = generateFloatAndWear();
 
-
-            const items = {
-                "Consumer Grade": ["P250 | Sand Dune", "Nova | Walnut", "MP7 | Army Recon", "SSG 08 | Abyss"],
-                "Industrial Grade": ["Glock-18 | Groundwater", "FAMAS | Cyanide", "M4A4 | Griffin", "P90 | Module"],
-                "Mil-Spec": ["Desert Eagle | Oxide Blaze", "P2000 | Fire Elemental", "CZ75-Auto | Tacticat", "UMP-45 | Primal Saber"],
-                "Restricted": ["AWP | Atheris", "M4A4 | Royal Paladin", "AWP | PAW"],
-                "Classified": ["AK-47 | Redline", "USP-S | Jawbreaker", "Zeus x27 | Olympus", "USP-S | Orion", ],
-                "Covert": ["M4A1-S | Cyrex", "AWP | Asiimov", "AK-47 | Vulcan", "M4A1-S | Golden Coil", "P90 | Asiimov", "AK-47 | Uncharted", "M4A1-S | Hyper Beast", "USP-S | Kill Confirmed"],
-                "Contraband": ["M4A4 | Howl", "AK-47 | Safari Mesh (4x Titan Holo)", "USP-S | Jordan's Perm"],
-                "Extraordinary": ["Bayonet | Blue Steel", "Bayonet | Boreal Forest", "Bayonet | Bright Water", "Bayonet | Case Hardened", "Bayonet | Crimson Web", "Bayonet | Damascus Steel", "Bayonet | Doppler (Phase 1)", "Bayonet | Doppler (Phase 2)", "Bayonet | Doppler (Phase 3)", "Bayonet | Doppler (Phase 4)", "Bayonet | Doppler Ruby", "Bayonet | Doppler Sapphire", "Bayonet | Doppler Black Pearl", "Bayonet | Fade", "Bayonet | Freehand", "Bayonet | Forest DDPAT", "Bayonet | Gamma Doppler (Phase 1)", "Bayonet | Gamma Doppler (Phase 2)", "Bayonet | Gamma Doppler (Phase 3)", "Bayonet | Gamma Doppler (Phase 4)", "Bayonet | Gamma Doppler Emerald", "Bayonet | Lore", "Bayonet | Marble Fade", "Bayonet | Night", "Bayonet | Night Stripe", "Bayonet | Rust Coat", "Bayonet | Safari Mesh", "Bayonet | Scorched", "Bayonet | Slaughter", "Bayonet | Stained", "Bayonet | Tiger Tooth", "Bayonet | Ultraviolet", "Bayonet | Urban Masked", "Bayonet | Vanilla", "Bowie Knife | Blue Steel", "Bowie Knife | Boreal Forest", "Bowie Knife | Bright Water", "Bowie Knife | Case Hardened", "Bowie Knife | Crimson Web", "Bowie Knife | Damascus Steel", "Bowie Knife | Doppler (Phase 1)", "Bowie Knife | Doppler (Phase 2)", "Bowie Knife | Doppler (Phase 3)", "Bowie Knife | Doppler (Phase 4)", "Bowie Knife | Doppler Ruby", "Bowie Knife | Doppler Sapphire", "Bowie Knife | Doppler Black Pearl", "Bowie Knife | Fade", "Bowie Knife | Freehand", "Bowie Knife | Forest DDPAT", "Bowie Knife | Gamma Doppler (Phase 1)", "Bowie Knife | Gamma Doppler (Phase 2)", "Bowie Knife | Gamma Doppler (Phase 3)", "Bowie Knife | Gamma Doppler (Phase 4)", "Bowie Knife | Gamma Doppler Emerald", "Bowie Knife | Lore", "Bowie Knife | Marble Fade", "Bowie Knife | Night", "Bowie Knife | Night Stripe", "Bowie Knife | Rust Coat", "Bowie Knife | Safari Mesh", "Bowie Knife | Scorched", "Bowie Knife | Slaughter", "Bowie Knife | Stained", "Bowie Knife | Tiger Tooth", "Bowie Knife | Ultraviolet", "Bowie Knife | Urban Masked", "Bowie Knife | Vanilla", "Butterfly Knife | Blue Steel", "Butterfly Knife | Boreal Forest", "Butterfly Knife | Bright Water", "Butterfly Knife | Case Hardened", "Butterfly Knife | Crimson Web", "Butterfly Knife | Damascus Steel", "Butterfly Knife | Doppler (Phase 1)", "Butterfly Knife | Doppler (Phase 2)", "Butterfly Knife | Doppler (Phase 3)", "Butterfly Knife | Doppler (Phase 4)", "Butterfly Knife | Doppler Ruby", "Butterfly Knife | Doppler Sapphire", "Butterfly Knife | Doppler Black Pearl", "Butterfly Knife | Fade", "Butterfly Knife | Freehand", "Butterfly Knife | Forest DDPAT", "Butterfly Knife | Gamma Doppler (Phase 1)", "Butterfly Knife | Gamma Doppler (Phase 2)", "Butterfly Knife | Gamma Doppler (Phase 3)", "Butterfly Knife | Gamma Doppler (Phase 4)", "Butterfly Knife | Gamma Doppler Emerald", "Butterfly Knife | Lore", "Butterfly Knife | Marble Fade", "Butterfly Knife | Night", "Butterfly Knife | Night Stripe", "Butterfly Knife | Rust Coat", "Butterfly Knife | Safari Mesh", "Butterfly Knife | Scorched", "Butterfly Knife | Slaughter", "Butterfly Knife | Stained", "Butterfly Knife | Tiger Tooth", "Butterfly Knife | Ultraviolet", "Butterfly Knife | Urban Masked", "Butterfly Knife | Vanilla", "Classic Knife | Blue Steel", "Classic Knife | Boreal Forest", "Classic Knife | Bright Water", "Classic Knife | Case Hardened", "Classic Knife | Crimson Web", "Classic Knife | Damascus Steel", "Classic Knife | Doppler (Phase 1)", "Classic Knife | Doppler (Phase 2)", "Classic Knife | Doppler (Phase 3)", "Classic Knife | Doppler (Phase 4)", "Classic Knife | Doppler Ruby", "Classic Knife | Doppler Sapphire", "Classic Knife | Doppler Black Pearl", "Classic Knife | Fade", "Classic Knife | Freehand", "Classic Knife | Forest DDPAT", "Classic Knife | Gamma Doppler (Phase 1)", "Classic Knife | Gamma Doppler (Phase 2)", "Classic Knife | Gamma Doppler (Phase 3)", "Classic Knife | Gamma Doppler (Phase 4)", "Classic Knife | Gamma Doppler Emerald", "Classic Knife | Lore", "Classic Knife | Marble Fade", "Classic Knife | Night", "Classic Knife | Night Stripe", "Classic Knife | Rust Coat", "Classic Knife | Safari Mesh", "Classic Knife | Scorched", "Classic Knife | Slaughter", "Classic Knife | Stained", "Classic Knife | Tiger Tooth", "Classic Knife | Ultraviolet", "Classic Knife | Urban Masked", "Classic Knife | Vanilla", "Falchion Knife | Blue Steel", "Falchion Knife | Boreal Forest", "Falchion Knife | Bright Water", "Falchion Knife | Case Hardened", "Falchion Knife | Crimson Web", "Falchion Knife | Damascus Steel", "Falchion Knife | Doppler (Phase 1)", "Falchion Knife | Doppler (Phase 2)", "Falchion Knife | Doppler (Phase 3)", "Falchion Knife | Doppler (Phase 4)", "Falchion Knife | Doppler Ruby", "Falchion Knife | Doppler Sapphire", "Falchion Knife | Doppler Black Pearl", "Falchion Knife | Fade", "Falchion Knife | Freehand", "Falchion Knife | Forest DDPAT", "Falchion Knife | Gamma Doppler (Phase 1)", "Falchion Knife | Gamma Doppler (Phase 2)", "Falchion Knife | Gamma Doppler (Phase 3)", "Falchion Knife | Gamma Doppler (Phase 4)", "Falchion Knife | Gamma Doppler Emerald", "Falchion Knife | Lore", "Falchion Knife | Marble Fade", "Falchion Knife | Night", "Falchion Knife | Night Stripe", "Falchion Knife | Rust Coat", "Falchion Knife | Safari Mesh", "Falchion Knife | Scorched", "Falchion Knife | Slaughter", "Falchion Knife | Stained", "Falchion Knife | Tiger Tooth", "Falchion Knife | Ultraviolet", "Falchion Knife | Urban Masked", "Falchion Knife | Vanilla", "Flip Knife | Blue Steel", "Flip Knife | Boreal Forest", "Flip Knife | Bright Water", "Flip Knife | Case Hardened", "Flip Knife | Crimson Web", "Flip Knife | Damascus Steel", "Flip Knife | Doppler (Phase 1)", "Flip Knife | Doppler (Phase 2)", "Flip Knife | Doppler (Phase 3)", "Flip Knife | Doppler (Phase 4)", "Flip Knife | Doppler Ruby", "Flip Knife | Doppler Sapphire", "Flip Knife | Doppler Black Pearl", "Flip Knife | Fade", "Flip Knife | Freehand", "Flip Knife | Forest DDPAT", "Flip Knife | Gamma Doppler (Phase 1)", "Flip Knife | Gamma Doppler (Phase 2)", "Flip Knife | Gamma Doppler (Phase 3)", "Flip Knife | Gamma Doppler (Phase 4)", "Flip Knife | Gamma Doppler Emerald", "Flip Knife | Lore", "Flip Knife | Marble Fade", "Flip Knife | Night", "Flip Knife | Night Stripe", "Flip Knife | Rust Coat", "Flip Knife | Safari Mesh", "Flip Knife | Scorched", "Flip Knife | Slaughter", "Flip Knife | Stained", "Flip Knife | Tiger Tooth", "Flip Knife | Ultraviolet", "Flip Knife | Urban Masked", "Flip Knife | Vanilla", "Gut Knife | Blue Steel", "Gut Knife | Boreal Forest", "Gut Knife | Bright Water", "Gut Knife | Case Hardened", "Gut Knife | Crimson Web", "Gut Knife | Damascus Steel", "Gut Knife | Doppler (Phase 1)", "Gut Knife | Doppler (Phase 2)", "Gut Knife | Doppler (Phase 3)", "Gut Knife | Doppler (Phase 4)", "Gut Knife | Doppler Ruby", "Gut Knife | Doppler Sapphire", "Gut Knife | Doppler Black Pearl", "Gut Knife | Fade", "Gut Knife | Freehand", "Gut Knife | Forest DDPAT", "Gut Knife | Gamma Doppler (Phase 1)", "Gut Knife | Gamma Doppler (Phase 2)", "Gut Knife | Gamma Doppler (Phase 3)", "Gut Knife | Gamma Doppler (Phase 4)", "Gut Knife | Gamma Doppler Emerald", "Gut Knife | Lore", "Gut Knife | Marble Fade", "Gut Knife | Night", "Gut Knife | Night Stripe", "Gut Knife | Rust Coat", "Gut Knife | Safari Mesh", "Gut Knife | Scorched", "Gut Knife | Slaughter", "Gut Knife | Stained", "Gut Knife | Tiger Tooth", "Gut Knife | Ultraviolet", "Gut Knife | Urban Masked", "Gut Knife | Vanilla", "Huntsman Knife | Blue Steel", "Huntsman Knife | Boreal Forest", "Huntsman Knife | Bright Water", "Huntsman Knife | Case Hardened", "Huntsman Knife | Crimson Web", "Huntsman Knife | Damascus Steel", "Huntsman Knife | Doppler (Phase 1)", "Huntsman Knife | Doppler (Phase 2)", "Huntsman Knife | Doppler (Phase 3)", "Huntsman Knife | Doppler (Phase 4)", "Huntsman Knife | Doppler Ruby", "Huntsman Knife | Doppler Sapphire", "Huntsman Knife | Doppler Black Pearl", "Huntsman Knife | Fade", "Huntsman Knife | Freehand", "Huntsman Knife | Forest DDPAT", "Huntsman Knife | Gamma Doppler (Phase 1)", "Huntsman Knife | Gamma Doppler (Phase 2)", "Huntsman Knife | Gamma Doppler (Phase 3)", "Huntsman Knife | Gamma Doppler (Phase 4)", "Huntsman Knife | Gamma Doppler Emerald", "Huntsman Knife | Lore", "Huntsman Knife | Marble Fade", "Huntsman Knife | Night", "Huntsman Knife | Night Stripe", "Huntsman Knife | Rust Coat", "Huntsman Knife | Safari Mesh", "Huntsman Knife | Scorched", "Huntsman Knife | Slaughter", "Huntsman Knife | Stained", "Huntsman Knife | Tiger Tooth", "Huntsman Knife | Ultraviolet", "Huntsman Knife | Urban Masked", "Huntsman Knife | Vanilla", "Karambit | Blue Steel", "Karambit | Boreal Forest", "Karambit | Bright Water", "Karambit | Case Hardened", "Karambit | Crimson Web", "Karambit | Damascus Steel", "Karambit | Doppler (Phase 1)", "Karambit | Doppler (Phase 2)", "Karambit | Doppler (Phase 3)", "Karambit | Doppler (Phase 4)", "Karambit | Doppler Ruby", "Karambit | Doppler Sapphire", "Karambit | Doppler Black Pearl", "Karambit | Fade", "Karambit | Freehand", "Karambit | Forest DDPAT", "Karambit | Gamma Doppler (Phase 1)", "Karambit | Gamma Doppler (Phase 2)", "Karambit | Gamma Doppler (Phase 3)", "Karambit | Gamma Doppler (Phase 4)", "Karambit | Gamma Doppler Emerald", "Karambit | Lore", "Karambit | Marble Fade", "Karambit | Night", "Karambit | Night Stripe", "Karambit | Rust Coat", "Karambit | Safari Mesh", "Karambit | Scorched", "Karambit | Slaughter", "Karambit | Stained", "Karambit | Tiger Tooth", "Karambit | Ultraviolet", "Karambit | Urban Masked", "Karambit | Vanilla", "M9 Bayonet | Blue Steel", "M9 Bayonet | Boreal Forest", "M9 Bayonet | Bright Water", "M9 Bayonet | Case Hardened", "M9 Bayonet | Crimson Web", "M9 Bayonet | Damascus Steel", "M9 Bayonet | Doppler (Phase 1)", "M9 Bayonet | Doppler (Phase 2)", "M9 Bayonet | Doppler (Phase 3)", "M9 Bayonet | Doppler (Phase 4)", "M9 Bayonet | Doppler Ruby", "M9 Bayonet | Doppler Sapphire", "M9 Bayonet | Doppler Black Pearl", "M9 Bayonet | Fade", "M9 Bayonet | Freehand", "M9 Bayonet | Forest DDPAT", "M9 Bayonet | Gamma Doppler (Phase 1)", "M9 Bayonet | Gamma Doppler (Phase 2)", "M9 Bayonet | Gamma Doppler (Phase 3)", "M9 Bayonet | Gamma Doppler (Phase 4)", "M9 Bayonet | Gamma Doppler Emerald", "M9 Bayonet | Lore", "M9 Bayonet | Marble Fade", "M9 Bayonet | Night", "M9 Bayonet | Night Stripe", "M9 Bayonet | Rust Coat", "M9 Bayonet | Safari Mesh", "M9 Bayonet | Scorched", "M9 Bayonet | Slaughter", "M9 Bayonet | Stained", "M9 Bayonet | Tiger Tooth", "M9 Bayonet | Ultraviolet", "M9 Bayonet | Urban Masked", "M9 Bayonet | Vanilla", "Navaja Knife | Blue Steel", "Navaja Knife | Boreal Forest", "Navaja Knife | Bright Water", "Navaja Knife | Case Hardened", "Navaja Knife | Crimson Web", "Navaja Knife | Damascus Steel", "Navaja Knife | Doppler (Phase 1)", "Navaja Knife | Doppler (Phase 2)", "Navaja Knife | Doppler (Phase 3)", "Navaja Knife | Doppler (Phase 4)", "Navaja Knife | Doppler Ruby", "Navaja Knife | Doppler Sapphire", "Navaja Knife | Doppler Black Pearl", "Navaja Knife | Fade", "Navaja Knife | Freehand", "Navaja Knife | Forest DDPAT", "Navaja Knife | Gamma Doppler (Phase 1)", "Navaja Knife | Gamma Doppler (Phase 2)", "Navaja Knife | Gamma Doppler (Phase 3)", "Navaja Knife | Gamma Doppler (Phase 4)", "Navaja Knife | Gamma Doppler Emerald", "Navaja Knife | Lore", "Navaja Knife | Marble Fade", "Navaja Knife | Night", "Navaja Knife | Night Stripe", "Navaja Knife | Rust Coat", "Navaja Knife | Safari Mesh", "Navaja Knife | Scorched", "Navaja Knife | Slaughter", "Navaja Knife | Stained", "Navaja Knife | Tiger Tooth", "Navaja Knife | Ultraviolet", "Navaja Knife | Urban Masked", "Navaja Knife | Vanilla", "Nomad Knife | Blue Steel", "Nomad Knife | Boreal Forest", "Nomad Knife | Bright Water", "Nomad Knife | Case Hardened", "Nomad Knife | Crimson Web", "Nomad Knife | Damascus Steel", "Nomad Knife | Doppler (Phase 1)", "Nomad Knife | Doppler (Phase 2)", "Nomad Knife | Doppler (Phase 3)", "Nomad Knife | Doppler (Phase 4)", "Nomad Knife | Doppler Ruby", "Nomad Knife | Doppler Sapphire", "Nomad Knife | Doppler Black Pearl", "Nomad Knife | Fade", "Nomad Knife | Freehand", "Nomad Knife | Forest DDPAT", "Nomad Knife | Gamma Doppler (Phase 1)", "Nomad Knife | Gamma Doppler (Phase 2)", "Nomad Knife | Gamma Doppler (Phase 3)", "Nomad Knife | Gamma Doppler (Phase 4)", "Nomad Knife | Gamma Doppler Emerald", "Nomad Knife | Lore", "Nomad Knife | Marble Fade", "Nomad Knife | Night", "Nomad Knife | Night Stripe", "Nomad Knife | Rust Coat", "Nomad Knife | Safari Mesh", "Nomad Knife | Scorched", "Nomad Knife | Slaughter", "Nomad Knife | Stained", "Nomad Knife | Tiger Tooth", "Nomad Knife | Ultraviolet", "Nomad Knife | Urban Masked", "Nomad Knife | Vanilla", "Paracord Knife | Blue Steel", "Paracord Knife | Boreal Forest", "Paracord Knife | Bright Water", "Paracord Knife | Case Hardened", "Paracord Knife | Crimson Web", "Paracord Knife | Damascus Steel", "Paracord Knife | Doppler (Phase 1)", "Paracord Knife | Doppler (Phase 2)", "Paracord Knife | Doppler (Phase 3)", "Paracord Knife | Doppler (Phase 4)", "Paracord Knife | Doppler Ruby", "Paracord Knife | Doppler Sapphire", "Paracord Knife | Doppler Black Pearl", "Paracord Knife | Fade", "Paracord Knife | Freehand", "Paracord Knife | Forest DDPAT", "Paracord Knife | Gamma Doppler (Phase 1)", "Paracord Knife | Gamma Doppler (Phase 2)", "Paracord Knife | Gamma Doppler (Phase 3)", "Paracord Knife | Gamma Doppler (Phase 4)", "Paracord Knife | Gamma Doppler Emerald", "Paracord Knife | Lore", "Paracord Knife | Marble Fade", "Paracord Knife | Night", "Paracord Knife | Night Stripe", "Paracord Knife | Rust Coat", "Paracord Knife | Safari Mesh", "Paracord Knife | Scorched", "Paracord Knife | Slaughter", "Paracord Knife | Stained", "Paracord Knife | Tiger Tooth", "Paracord Knife | Ultraviolet", "Paracord Knife | Urban Masked", "Paracord Knife | Vanilla", "Shadow Daggers | Blue Steel", "Shadow Daggers | Boreal Forest", "Shadow Daggers | Bright Water", "Shadow Daggers | Case Hardened", "Shadow Daggers | Crimson Web", "Shadow Daggers | Damascus Steel", "Shadow Daggers | Doppler (Phase 1)", "Shadow Daggers | Doppler (Phase 2)", "Shadow Daggers | Doppler (Phase 3)", "Shadow Daggers | Doppler (Phase 4)", "Shadow Daggers | Doppler Ruby", "Shadow Daggers | Doppler Sapphire", "Shadow Daggers | Doppler Black Pearl", "Shadow Daggers | Fade", "Shadow Daggers | Freehand", "Shadow Daggers | Forest DDPAT", "Shadow Daggers | Gamma Doppler (Phase 1)", "Shadow Daggers | Gamma Doppler (Phase 2)", "Shadow Daggers | Gamma Doppler (Phase 3)", "Shadow Daggers | Gamma Doppler (Phase 4)", "Shadow Daggers | Gamma Doppler Emerald", "Shadow Daggers | Lore", "Shadow Daggers | Marble Fade", "Shadow Daggers | Night", "Shadow Daggers | Night Stripe", "Shadow Daggers | Rust Coat", "Shadow Daggers | Safari Mesh", "Shadow Daggers | Scorched", "Shadow Daggers | Slaughter", "Shadow Daggers | Stained", "Shadow Daggers | Tiger Tooth", "Shadow Daggers | Ultraviolet", "Shadow Daggers | Urban Masked", "Shadow Daggers | Vanilla", "Skeleton Knife | Blue Steel", "Skeleton Knife | Boreal Forest", "Skeleton Knife | Bright Water", "Skeleton Knife | Case Hardened", "Skeleton Knife | Crimson Web", "Skeleton Knife | Damascus Steel", "Skeleton Knife | Doppler (Phase 1)", "Skeleton Knife | Doppler (Phase 2)", "Skeleton Knife | Doppler (Phase 3)", "Skeleton Knife | Doppler (Phase 4)", "Skeleton Knife | Doppler Ruby", "Skeleton Knife | Doppler Sapphire", "Skeleton Knife | Doppler Black Pearl", "Skeleton Knife | Fade", "Skeleton Knife | Freehand", "Skeleton Knife | Forest DDPAT", "Skeleton Knife | Gamma Doppler (Phase 1)", "Skeleton Knife | Gamma Doppler (Phase 2)", "Skeleton Knife | Gamma Doppler (Phase 3)", "Skeleton Knife | Gamma Doppler (Phase 4)", "Skeleton Knife | Gamma Doppler Emerald", "Skeleton Knife | Lore", "Skeleton Knife | Marble Fade", "Skeleton Knife | Night", "Skeleton Knife | Night Stripe", "Skeleton Knife | Rust Coat", "Skeleton Knife | Safari Mesh", "Skeleton Knife | Scorched", "Skeleton Knife | Slaughter", "Skeleton Knife | Stained", "Skeleton Knife | Tiger Tooth", "Skeleton Knife | Ultraviolet", "Skeleton Knife | Urban Masked", "Skeleton Knife | Vanilla", "Stiletto Knife | Blue Steel", "Stiletto Knife | Boreal Forest", "Stiletto Knife | Bright Water", "Stiletto Knife | Case Hardened", "Stiletto Knife | Crimson Web", "Stiletto Knife | Damascus Steel", "Stiletto Knife | Doppler (Phase 1)", "Stiletto Knife | Doppler (Phase 2)", "Stiletto Knife | Doppler (Phase 3)", "Stiletto Knife | Doppler (Phase 4)", "Stiletto Knife | Doppler Ruby", "Stiletto Knife | Doppler Sapphire", "Stiletto Knife | Doppler Black Pearl", "Stiletto Knife | Fade", "Stiletto Knife | Freehand", "Stiletto Knife | Forest DDPAT", "Stiletto Knife | Gamma Doppler (Phase 1)", "Stiletto Knife | Gamma Doppler (Phase 2)", "Stiletto Knife | Gamma Doppler (Phase 3)", "Stiletto Knife | Gamma Doppler (Phase 4)", "Stiletto Knife | Gamma Doppler Emerald", "Stiletto Knife | Lore", "Stiletto Knife | Marble Fade", "Stiletto Knife | Night", "Stiletto Knife | Night Stripe", "Stiletto Knife | Rust Coat", "Stiletto Knife | Safari Mesh", "Stiletto Knife | Scorched", "Stiletto Knife | Slaughter", "Stiletto Knife | Stained", "Stiletto Knife | Tiger Tooth", "Stiletto Knife | Ultraviolet", "Stiletto Knife | Urban Masked", "Stiletto Knife | Vanilla", "Survival Knife | Blue Steel", "Survival Knife | Boreal Forest", "Survival Knife | Bright Water", "Survival Knife | Case Hardened", "Survival Knife | Crimson Web", "Survival Knife | Damascus Steel", "Survival Knife | Doppler (Phase 1)", "Survival Knife | Doppler (Phase 2)", "Survival Knife | Doppler (Phase 3)", "Survival Knife | Doppler (Phase 4)", "Survival Knife | Doppler Ruby", "Survival Knife | Doppler Sapphire", "Survival Knife | Doppler Black Pearl", "Survival Knife | Fade", "Survival Knife | Freehand", "Survival Knife | Forest DDPAT", "Survival Knife | Gamma Doppler (Phase 1)", "Survival Knife | Gamma Doppler (Phase 2)", "Survival Knife | Gamma Doppler (Phase 3)", "Survival Knife | Gamma Doppler (Phase 4)", "Survival Knife | Gamma Doppler Emerald", "Survival Knife | Lore", "Survival Knife | Marble Fade", "Survival Knife | Night", "Survival Knife | Night Stripe", "Survival Knife | Rust Coat", "Survival Knife | Safari Mesh", "Survival Knife | Scorched", "Survival Knife | Slaughter", "Survival Knife | Stained", "Survival Knife | Tiger Tooth", "Survival Knife | Ultraviolet", "Survival Knife | Urban Masked", "Survival Knife | Vanilla", "Talon Knife | Blue Steel", "Talon Knife | Boreal Forest", "Talon Knife | Bright Water", "Talon Knife | Case Hardened", "Talon Knife | Crimson Web", "Talon Knife | Damascus Steel", "Talon Knife | Doppler (Phase 1)", "Talon Knife | Doppler (Phase 2)", "Talon Knife | Doppler (Phase 3)", "Talon Knife | Doppler (Phase 4)", "Talon Knife | Doppler Ruby", "Talon Knife | Doppler Sapphire", "Talon Knife | Doppler Black Pearl", "Talon Knife | Fade", "Talon Knife | Freehand", "Talon Knife | Forest DDPAT", "Talon Knife | Gamma Doppler (Phase 1)", "Talon Knife | Gamma Doppler (Phase 2)", "Talon Knife | Gamma Doppler (Phase 3)", "Talon Knife | Gamma Doppler (Phase 4)", "Talon Knife | Gamma Doppler Emerald", "Talon Knife | Lore", "Talon Knife | Marble Fade", "Talon Knife | Night", "Talon Knife | Night Stripe", "Talon Knife | Rust Coat", "Talon Knife | Safari Mesh", "Talon Knife | Scorched", "Talon Knife | Slaughter", "Talon Knife | Stained", "Talon Knife | Tiger Tooth", "Talon Knife | Ultraviolet", "Talon Knife | Urban Masked", "Talon Knife | Vanilla", "Ursus Knife | Blue Steel", "Ursus Knife | Boreal Forest", "Ursus Knife | Bright Water", "Ursus Knife | Case Hardened", "Ursus Knife | Crimson Web", "Ursus Knife | Damascus Steel", "Ursus Knife | Doppler (Phase 1)", "Ursus Knife | Doppler (Phase 2)", "Ursus Knife | Doppler (Phase 3)", "Ursus Knife | Doppler (Phase 4)", "Ursus Knife | Doppler Ruby", "Ursus Knife | Doppler Sapphire", "Ursus Knife | Doppler Black Pearl", "Ursus Knife | Fade", "Ursus Knife | Freehand", "Ursus Knife | Forest DDPAT", "Ursus Knife | Gamma Doppler (Phase 1)", "Ursus Knife | Gamma Doppler (Phase 2)", "Ursus Knife | Gamma Doppler (Phase 3)", "Ursus Knife | Gamma Doppler (Phase 4)", "Ursus Knife | Gamma Doppler Emerald", "Ursus Knife | Lore", "Ursus Knife | Marble Fade", "Ursus Knife | Night", "Ursus Knife | Night Stripe", "Ursus Knife | Rust Coat", "Ursus Knife | Safari Mesh", "Ursus Knife | Scorched", "Ursus Knife | Slaughter", "Ursus Knife | Stained", "Ursus Knife | Tiger Tooth", "Ursus Knife | Ultraviolet", "Ursus Knife | Urban Masked", "Ursus Knife | Vanilla"]
+            // 5. Combine and return the fully generated item
+            return {
+                ...baseItem,
+                value: generateItemValue(baseItem.rarity),
+                float: float,
+                wear: wear,
+                pattern_id: Math.floor(Math.random() * 1000) + 1, // Pattern IDs range from 1 to 1000
             };
+        }
 
-            // --- DOM ELEMENTS ---
-            const moneyDisplay = document.getElementById('moneyDisplay');
-            const workButton = document.getElementById('workButton');
-            const openCaseButton = document.getElementById('openCaseButton');
-            const resultBox = document.getElementById('resultBox');
-            const inventoryLog = document.getElementById('inventoryLog');
-            const notificationContainer = document.getElementById('notificationContainer');
-            const instantSellButton = document.getElementById('instantSellButton');
-            const keepItemButton = document.getElementById('keepItemButton');
-            const oddsTooltip = document.getElementById('oddsTooltip'); 
-            const inventoryModal = document.getElementById('inventoryModal');
-            const modalContent = document.getElementById('modalContent');
+        /**
+         * Creates an HTML element for a given item.
+         */
+        function createItemElement(item, isLarge = false) {
+            const div = document.createElement('div');
             
-            const tradeupInventoryLog = document.getElementById('tradeupInventoryLog');
-            const executeTradeUpButton = document.getElementById('executeTradeUpButton');
-            const tradeupCount = document.getElementById('tradeupCount');
-            const tradeupRarity = document.getElementById('tradeupRarity');
-            const tradeupOutputName = document.getElementById('tradeupOutputName');
-            const tradeupOutputOdds = document.getElementById('tradeupOutputOdds');
-
-            // Save/Reset buttons are now in the settingsView
-            const saveGameButton = document.getElementById('saveGameButton');
-            const resetGameButton = document.getElementById('resetGameButton');
+            const color = RARITY_COLORS[item.rarity];
+            const imageUrl = item.image;
             
-            const navButtons = document.querySelectorAll('.nav-button');
-            const views = document.querySelectorAll('.view');
+            // Determine the size of the placeholder text based on context
+            const placeholderTextSize = isLarge ? '150x100/1f2937/FFFFFF?text=' : '120x80/2d3748/FFFFFF?text=';
             
-            const buyNametagButton = document.getElementById('buyNametagButton');
+            // Use the item name for a dynamic placeholder
+            const placeholderName = item.name.split('|')[0].trim();
+            const placeholderUrl = `https://placehold.co/${placeholderTextSize}${placeholderName.replace(/ /g, '+')}`;
 
-            // --- ITEM GENERATION HELPERS ---
-            
-            function rollForRarity() {
-                let roll = Math.random();
-                let cumulativeProbability = 0;
 
-                for (const rarity of rarities) {
-                    cumulativeProbability += rarity.probability;
-                    if (roll < cumulativeProbability) {
-                        return rarity;
-                    }
-                }
-                return rarities[rarities.length - 1]; 
-            }
-
-            function generateRandomItem(rarity) {
-                const chosenRarity = rarity || rollForRarity();
-
-                const itemsInRarity = items[chosenRarity.name];
-                let randomItemName = itemsInRarity[Math.floor(Math.random() * itemsInRarity.length)];
-                
-                const statTrakChance = 0.10;
-                const isStatTrak = Math.random() < statTrakChance;
-
-                let itemFloat = Math.random(); 
-                
-                if (rarity === undefined) {
-                    itemFloat = Math.random(); 
-                } 
-
-                const wearFactor = 1 - (itemFloat * 0.5); 
-                let baseValue = Math.random() * (chosenRarity.maxSell - chosenRarity.minSell) + chosenRarity.minSell;
-                let sellValue = baseValue * wearFactor;
-                
-                if (isStatTrak) {
-                    randomItemName = `StatTrak™ ${randomItemName}`;
-                    sellValue *= 1.20; 
-                }
-
-                const itemWearName = getWearName(itemFloat);
-                
-                const patternId = Math.floor(Math.random() * 999) + 1;
-
-                return {
-                    name: randomItemName,
-                    rarity: chosenRarity.name,
-                    value: sellValue,
-                    colorClass: chosenRarity.colorClass,
-                    float: itemFloat,
-                    wearName: itemWearName,
-                    isStatTrak: isStatTrak,
-                    patternId: patternId 
-                };
-            }
-
-            // --- FLICKER ANIMATION CORE ---
-
-            let flickerInterval; 
-
-            function animateFlicker(targetDuration, finalItem) {
-                const startTime = Date.now();
-                
-                clearInterval(flickerInterval);
-
-                lastItem = null; 
-                
-                // Reset border class - classic inset border only
-                resultBox.className = resultBox.className.split(' ').filter(c => !c.startsWith('border-')).join(' ');
-                resultBox.classList.add('classic-inset', 'bg-white', 'border-2', 'border-solid', 'border-gray-400');
-                
-                function getFillerItem() {
-                    const flickerRarities = [
-                        { name: "Consumer Grade", weight: 6, colorClass: 'rarity-common' },
-                        { name: "Industrial Grade", weight: 3, colorClass: 'rarity-uncommon' },
-                        { name: "Mil-Spec", weight: 1, colorClass: 'rarity-rare' }
-                    ];
-
-                    let totalWeight = flickerRarities.reduce((sum, r) => sum + r.weight, 0);
-                    let randomWeight = Math.random() * totalWeight;
-                    let cumulativeWeight = 0;
-                    let randomRarityData = flickerRarities[0];
-
-                    for (const rarity of flickerRarities) {
-                        cumulativeWeight += rarity.weight;
-                        if (randomWeight < cumulativeWeight) {
-                            randomRarityData = rarity;
-                            break;
-                        }
-                    }
-
-                    const itemsInRarity = items[randomRarityData.name];
-                    const randomItemName = itemsInRarity[Math.floor(Math.random() * itemsInRarity.length)];
-
-                    return {
-                        name: randomItemName,
-                        colorClass: randomRarityData.colorClass,
-                        rarity: randomRarityData.name
-                    };
-                }
-
-                let intervalDuration = 80; // Slower, chunkier flicker
-
-                function flickerStep() {
-                    const elapsed = Date.now() - startTime;
-                    const remaining = targetDuration - elapsed;
-
-                    if (remaining <= 0) {
-                        // --- Stop Animation ---
-                        clearInterval(flickerInterval);
-                        flickerInterval = undefined; 
-                        lastItem = finalItem; 
-                        
-                        openCaseButton.disabled = false;
-                        if (!isRateLimited) workButton.disabled = false;
-                        
-                        updateUI();
-                        return;
-                    }
-
-                    // Simple deceleration: interval gets longer
-                    const progress = elapsed / targetDuration; 
-                    intervalDuration = 80 + (420 * progress); 
-
-                    const filler = getFillerItem();
+            if (isLarge) {
+                // Large card for the result modal
+                div.className = 'flex flex-col items-center w-full max-w-xs';
+                div.style.borderTop = `8px solid ${color}`;
+                div.innerHTML = `
+                    <img src="${imageUrl}" alt="${item.name}" class="w-full h-48 object-cover rounded-md mt-4 shadow-lg" 
+                         onerror="this.src='${placeholderUrl.replace('120x80', '150x100')}'">
+                    <h3 class="text-3xl font-bold mt-4 text-center">${item.name}</h3>
+                    <p class="item-card-rarity text-xl" style="color: ${color};">${item.rarity}</p>
                     
-                    // Simple, blocky flicker text - now using rarity colors for text
-                    resultBox.innerHTML = `
-                        <div class="item-reveal text-center">
-                            <div class="text-sm font-bold ${filler.colorClass}">[ ${filler.rarity} ]</div>
-                            <div class="text-2xl font-black ${filler.colorClass}">${filler.name}</div>
-                            <div class="text-sm text-gray-400 mt-2">...Opening Case...</div>
-                        </div>
-                    `;
-                    
-                    clearInterval(flickerInterval);
-                    flickerInterval = setInterval(flickerStep, intervalDuration);
-                }
-                
-                flickerInterval = setInterval(flickerStep, intervalDuration);
-            }
-
-            // --- SAVE/LOAD FUNCTIONS ---
-
-            const SAVE_KEY = 'caseOpenerSimulatorSave';
-
-            function saveGame() {
-                const gameState = {
-                    money: money,
-                    inventory: inventory,
-                    clickTimestamps: clickTimestamps,
-                    nametagCount: nametagCount
-                };
-                try {
-                    localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
-                } catch (e) {
-                    console.error("Could not save game to localStorage:", e);
-                    showNotification("Error: Could not save game to local storage.");
-                }
-            }
-
-            function loadGame() {
-                try {
-                    const savedData = localStorage.getItem(SAVE_KEY);
-                    if (savedData) {
-                        const gameState = JSON.parse(savedData);
-                        money = gameState.money || 0;
-                        inventory = gameState.inventory || [];
-                        sellHistory = []; 
-                        clickTimestamps = gameState.clickTimestamps || [];
-                        nametagCount = gameState.nametagCount || 0;
-                        
-                        showNotification(`<span class="font-bold text-green-400">Progress Loaded!</span><br>Welcome back!`);
-                    } else {
-                        showNotification(`<span class="font-bold text-yellow-400">New Game Started!</span><br>Click 'Earn Cash' to begin.`);
-                    }
-                } catch (e) {
-                    console.error("Could not load game from localStorage:", e);
-                    localStorage.removeItem(SAVE_KEY); 
-                    showNotification("Error: Could not load game. Starting a fresh game.");
-                }
-                updateUI();
-            }
-
-            function resetGame() {
-                if (confirm("Are you sure you want to reset ALL game progress? This cannot be undone.")) {
-                    localStorage.removeItem(SAVE_KEY);
-                    
-                    money = 0;
-                    lastItem = null;
-                    inventory = [];
-                    sellHistory = []; 
-                    clickTimestamps = [];
-                    selectedTradeUpIndices = [];
-                    requiredTradeUpRarity = null;
-                    nametagCount = 0;
-
-                    clearCaseView();
-                    resetTradeUpState();
-                    
-                    showNotification(`<span class="font-bold text-red-400">GAME RESET!</span><br>All progress has been wiped.`);
-                    updateUI();
-                }
-            }
-
-
-            // --- UTILITY FUNCTIONS ---
-            
-            function clearCaseView() {
-                lastItem = null; 
-                clearInterval(flickerInterval);
-                flickerInterval = undefined; 
-                
-                // Classic border reset
-                resultBox.className = resultBox.className.split(' ').filter(c => !c.startsWith('border-')).join(' ');
-                resultBox.classList.add('classic-inset', 'bg-white', 'border-2', 'border-solid', 'border-gray-400');
-                resultBox.innerHTML = '<span class="text-gray-400">Open a case to see your item!</span>';
-                
-                const toggleActiveState = (btn, activeColor, isActive) => {
-                    // Use the classic border styling for active/inactive states
-                    btn.classList.toggle('classic-border', isActive);
-                    btn.classList.toggle('classic-inset', !isActive); // Looks "unpressed" when active/ready
-                    
-                    btn.classList.toggle(activeColor, isActive);
-                    btn.classList.toggle('bg-gray-600', !isActive); // Use gray-600 for disabled look
-                };
-                
-                toggleActiveState(instantSellButton, 'bg-green-600', false);
-                toggleActiveState(keepItemButton, 'bg-blue-600', false);
-
-                instantSellButton.disabled = true;
-                keepItemButton.disabled = true;
-                openCaseButton.disabled = false; 
-                
-                updateUI(); 
-            }
-            
-            
-            function populateOddsTooltip() {
-                let html = '<p class="font-bold mb-1 text-black">Rarity Chances:</p>';
-                
-                rarities.forEach(r => {
-                    let percentage = (r.probability * 100).toFixed(2);
-                    
-                    html += `<div class="flex justify-between border-b border-gray-400 last:border-b-0">
-                                <span class="${r.colorClass} font-bold">${r.name}:</span>
-                                <span class="text-black">${percentage}%</span>
-                            </div>`;
-                });
-                
-                oddsTooltip.innerHTML = html;
-            }
-
-
-            function switchView(viewName) {
-                // 1. Hide all views and remove active class from buttons
-                views.forEach(view => {
-                    view.classList.add('hidden');
-                });
-                navButtons.forEach(button => {
-                    button.classList.remove('active-nav-button');
-                });
-
-                // 2. Show the selected view and set active button
-                const targetView = document.getElementById(viewName + 'View');
-                if (targetView) {
-                    targetView.classList.remove('hidden');
-                }
-                const targetButton = document.querySelector(`.nav-button[data-view="${viewName}"]`);
-                if (targetButton) {
-                    targetButton.classList.add('active-nav-button');
-                }
-                
-                // Views that require a UI refresh
-                if (['inventory', 'case', 'shop', 'settings'].includes(viewName)) {
-                    updateUI();
-                }
-                if (viewName === 'tradeup') {
-                    resetTradeUpState();
-                    renderTradeUpInventory();
-                }
-            }
-
-
-            function updateUI() {
-                // 1. Update money display
-                moneyDisplay.textContent = `$${money.toFixed(2)}`;
-                
-                // 2. Update button states
-                const isFlickering = flickerInterval !== undefined;
-                const hasPendingItem = lastItem != null;
-                
-                const canOpenCase = money >= caseCost && !hasPendingItem && !isFlickering;
-                openCaseButton.disabled = !canOpenCase;
-                openCaseButton.textContent = `Open Case ($${caseCost.toFixed(2)})`;
-                
-                workButton.disabled = hasPendingItem || isFlickering || isRateLimited;
-                if (!isRateLimited) {
-                    workButton.textContent = `+$${workAmount.toFixed(2)}`; 
-                }
-
-                // 3. Update sell/keep button states and text (Case View)
-                const isActionDisabled = !hasPendingItem || isFlickering;
-                
-                instantSellButton.disabled = isActionDisabled;
-                keepItemButton.disabled = isActionDisabled;
-
-                // Control button appearance (use classic-border/classic-inset)
-                const toggleActiveState = (btn, activeColor, isActive) => {
-                    btn.classList.toggle('classic-inset', !isActive);
-                    btn.classList.toggle('classic-border', isActive);
-                    
-                    btn.classList.toggle(activeColor, isActive);
-                    btn.classList.toggle('bg-gray-600', !isActive); // Disabled color
-                    
-                    // Force text color on action buttons
-                    btn.style.color = isActive ? 'white' : 'var(--color-border-dark)';
-                    if (isActive && btn.id === 'instantSellButton') btn.style.color = 'white';
-                    if (isActive && btn.id === 'keepItemButton') btn.style.color = 'white';
-                };
-                
-                toggleActiveState(instantSellButton, 'bg-green-600', !isActionDisabled);
-                toggleActiveState(keepItemButton, 'bg-blue-600', !isActionDisabled);
-                
-                // Open Case button active state
-                const openCaseActive = canOpenCase && !hasPendingItem;
-                openCaseButton.classList.toggle('classic-border', openCaseActive);
-                openCaseButton.classList.toggle('classic-inset', !openCaseActive);
-                openCaseButton.classList.toggle('bg-purple-600', openCaseActive);
-                openCaseButton.classList.toggle('bg-gray-600', !openCaseActive);
-                openCaseButton.style.color = openCaseActive ? 'white' : 'var(--color-border-dark)';
-
-
-                // Set button text
-                if (hasPendingItem) {
-                    instantSellButton.textContent = `Instant Sell ($${lastItem.value.toFixed(2)})`;
-                } else {
-                    instantSellButton.textContent = `Instant Sell ($0.00)`; 
-                }
-                keepItemButton.textContent = `Keep Item`;
-                
-                // 4. Update result box (Case View)
-                if (hasPendingItem) {
-                    const colorClass = lastItem.colorClass;
-                    const itemNameClass = colorClass; 
-                    
-                    // Simple, blocky final display
-                    resultBox.innerHTML = `
-                        <div class="item-reveal text-center">
-                            <div class="text-lg font-bold ${colorClass}">[ ${lastItem.rarity} ]</div>
-                            <div class="text-4xl font-black ${itemNameClass} break-words">${lastItem.customName ? `"${lastItem.customName}"` : lastItem.name}</div>
-                            <div class="text-lg text-black">${lastItem.wearName}</div>
-                            <div class="text-xs text-gray-400 mb-2">(Float: ${lastItem.float.toFixed(10)} | Pattern: ${lastItem.patternId})</div>
-                            <div class="text-lg text-green-400 font-bold mt-2">Sell Value: $${lastItem.value.toFixed(2)}</div>
-                        </div>
-                    `;
-                    // Classic border reset
-                    resultBox.className = resultBox.className.split(' ').filter(c => !c.startsWith('border-')).join(' ');
-                    resultBox.classList.add('classic-inset', 'bg-white', 'border-2', 'border-solid', 'border-gray-400');
-
-                    
-                } else if (!isFlickering && document.getElementById('caseView').classList.contains('hidden') === false) {
-                    resultBox.innerHTML = '<span class="text-gray-400">Open a case to see your item!</span>';
-                    // Classic border reset
-                    resultBox.className = resultBox.className.split(' ').filter(c => !c.startsWith('border-')).join(' ');
-                    resultBox.classList.add('classic-inset', 'bg-white', 'border-2', 'border-solid', 'border-gray-400');
-                }
-                
-                // 5. Update inventory log (GRID DISPLAY - Inventory View)
-                if (document.getElementById('inventoryView').classList.contains('hidden') === false) {
-                    renderInventory(inventoryLog, false);
-                }
-                
-                // Update Shop View if visible
-                if (document.getElementById('shopView').classList.contains('hidden') === false) {
-                    renderShopView();
-                }
-
-                saveGame();
-            }
-            
-            function renderInventory(targetElement, isTradeUpView) {
-                if (inventory.length === 0) {
-                    targetElement.innerHTML = '<div class="text-gray-400 text-center col-span-full pt-4">The items you own will be kept here.</div>';
-                    return;
-                }
-                
-                targetElement.innerHTML = ''; 
-                
-                inventory.forEach((item, index) => {
-                    const itemElement = document.createElement('button');
-                    const borderClass = item.colorClass.replace('rarity-', 'border-');
-                    
-                    let extraClasses = '';
-                    if (isTradeUpView && selectedTradeUpIndices.includes(index)) {
-                        extraClasses += ' selected-for-tradeup';
-                    } else if (isTradeUpView && requiredTradeUpRarity && item.rarity !== requiredTradeUpRarity && selectedTradeUpIndices.length > 0) {
-                        extraClasses += ' opacity-50 cursor-not-allowed';
-                    } else if (isTradeUpView && !getNextRarity(item.rarity) && selectedTradeUpIndices.length === 0) {
-                        extraClasses += ' opacity-50 cursor-not-allowed';
-                    }
-
-                    // Use inventory-grid-item for classic inset border look
-                    itemElement.className = `
-                        inventory-grid-item 
-                        p-1 
-                        aspect-square 
-                        flex flex-col items-center justify-center text-center 
-                        relative overflow-hidden
-                        ${extraClasses}
-                    `;
-                    
-                    if (isTradeUpView) {
-                        itemElement.addEventListener('click', () => toggleTradeUpSelection(item, index));
-                    } else {
-                        itemElement.addEventListener('click', () => openItemModal(item, index));
-                    }
-
-                    const itemNameColor = item.colorClass;
-                    
-                    const nameToDisplay = item.customName ? `"${item.customName}"` : item.name;
-                    const originalName = item.customName ? `<div class="text-xs text-gray-500 leading-none truncate w-full px-1">${item.name}</div>` : '';
-
-
-                    itemElement.innerHTML = `
-                        <div class="text-xs font-bold ${item.colorClass} mb-0">[ ${item.rarity} ]</div>
-                        ${originalName}
-                        <div class="text-sm font-bold ${itemNameColor} leading-tight truncate w-full px-1">${nameToDisplay}</div>
-                        <div class="text-xs text-black mt-0">${item.wearName}</div>
-                        <div class="text-sm font-bold text-green-400 mt-1">$${item.value.toFixed(2)}</div>
-                        ${item.isStatTrak ? '<div class="absolute top-1 left-1 text-blue-400 text-xs font-bold">ST</div>' : ''}
-                    `;
-                    targetElement.appendChild(itemElement);
-                });
-            }
-
-
-            function showNotification(message, duration = 3000) {
-                const box = document.createElement('div');
-                // Use classic border and fade classes (NO SLIDE/TRANSLATE)
-                // MODIFIED: Removed 'fixed top-4 right-4 z-50' as positioning is now on the container
-                box.className = 'classic-border bg-gray-200 text-black p-2 max-w-xs notification-fade-in';
-                box.innerHTML = message; 
-                
-                notificationContainer.prepend(box); 
-
-                // Fade in
-                setTimeout(() => {
-                    box.classList.add('notification-visible');
-                }, 10); 
-
-                // Fade out
-                setTimeout(() => {
-                    box.classList.remove('notification-visible');
-                    setTimeout(() => {
-                        box.remove();
-                    }, 400); // Wait for the transition (0.4s) to finish before removing
-                }, duration);
-            }
-            
-
-            function earn() {
-                if (isRateLimited) return; 
-
-                const now = Date.now();
-
-                clickTimestamps = clickTimestamps.filter(timestamp => now - timestamp < TIME_WINDOW_MS);
-
-                if (clickTimestamps.length >= MAX_CLICKS_IN_WINDOW) {
-                    isRateLimited = true;
-                    
-                    showNotification(`
-                        <span class="font-bold text-red-400">SLOW DOWN!</span>
-                        <br>You are clicking too fast.
-                    `, 4000); 
-
-                    workButton.disabled = true;
-                    workButton.textContent = "Taking a Break...";
-
-                    setTimeout(() => {
-                        isRateLimited = false;
-                        updateUI(); 
-                    }, 3000); 
-
-                    return; 
-                }
-
-                clickTimestamps.push(now);
-                money += workAmount;
-                updateUI(); 
-            }
-
-            function openCase() {
-                if (money < caseCost || lastItem || flickerInterval) {
-                    showNotification("Cannot open case. Sell or keep pending item!");
-                    return;
-                }
-
-                money -= caseCost;
-                
-                openCaseButton.disabled = true;
-                instantSellButton.disabled = true;
-                keepItemButton.disabled = true;
-                workButton.disabled = true;
-                
-                switchView('case');
-
-                const winningItem = generateRandomItem();
-
-                animateFlicker(4000, winningItem); 
-                
-                updateUI(); 
-            }
-
-            function instantSellItem() {
-                if (!lastItem) return;
-
-                const soldItem = {
-                    ...lastItem, 
-                    sellDate: new Date().toLocaleString()
-                };
-                sellHistory.push(soldItem); 
-                
-                const itemName = lastItem.customName ? `"${lastItem.customName}"` : lastItem.name;
-                const itemValue = lastItem.value;
-                const colorClass = lastItem.colorClass; 
-
-                money += itemValue;
-                
-                clearCaseView(); 
-
-                const formattedItemName = `<span class="${colorClass} font-bold">${itemName}</span>`;
-
-                showNotification(`Sold ${formattedItemName} for $${itemValue.toFixed(2)}.`);
-                updateUI(); 
-            }
-
-            function keepItem() {
-                if (!lastItem) return;
-
-                const itemName = lastItem.customName ? `"${lastItem.customName}"` : lastItem.name;
-                const colorClass = lastItem.colorClass; 
-
-                inventory.push({ 
-                    ...lastItem, 
-                    unboxedTime: new Date().toLocaleString() 
-                });
-                
-                clearCaseView();
-
-                const formattedItemName = `<span class="${colorClass} font-bold">${itemName}</span>`;
-
-                showNotification(`Stored ${formattedItemName} in inventory.`);
-                updateUI(); 
-            }
-            
-            // SHOP FUNCTIONS
-            function renderShopView() {
-                buyNametagButton.textContent = `Buy ($${nametagCost.toFixed(2)} | Owned: ${nametagCount})`;
-                const canBuy = money >= nametagCost;
-                buyNametagButton.disabled = !canBuy;
-                
-                // Classic button color logic
-                buyNametagButton.classList.toggle('bg-blue-600', canBuy);
-                buyNametagButton.classList.toggle('bg-gray-600', !canBuy);
-                buyNametagButton.style.color = canBuy ? 'white' : 'var(--color-border-dark)';
-            }
-
-            function buyNametag() {
-                if (money < nametagCost) {
-                    showNotification("Insufficient cash to buy a Nametag Kit.");
-                    return;
-                }
-                
-                money -= nametagCost;
-                nametagCount += 1;
-                
-                showNotification(`Purchased a <span class="font-bold text-blue-600">Nametag Kit</span> for $${nametagCost.toFixed(2)}.`);
-                
-                updateUI();
-            }
-            // END SHOP FUNCTIONS
-
-            
-            // --- MODAL LOGIC (Classic Styling) ---
-            
-            function openItemModal(item, index) {
-                selectedItemIndex = index;
-                
-                // Allow naming on everything except the Exceedingly Rare (Knives/Gloves)
-                const isWeapon = item.rarity !== 'Extraordinary';
-                
-                // Determine the displayed name
-                const displayedName = item.customName ? 
-                    `<span class="text-2xl font-black text-black">"${item.customName}"</span><span class="text-sm font-normal text-gray-500 block">Original: ${item.name}</span>` : 
-                    `<span class="text-2xl font-black text-black">${item.name}</span>`;
-
-                
-                // Classic Modal Title Bar
-                modalContent.innerHTML = `
-                    <div class="classic-title-bar flex justify-between items-center mb-2">
-                        <h3 class="text-sm font-black truncate">${item.customName ? '"' + item.customName + '"' : item.name} - Properties</h3>
-                        <button id="closeModalBtn" class="text-base leading-none ml-4">[X]</button>
-                    </div>
-                    
-                    <div class="space-y-1 p-2 classic-inset bg-white text-sm mb-4">
-                        <p class="text-black">Weapon: ${displayedName}</p>
-                        <p class="text-black">Rarity: <span class="font-bold ${item.colorClass}">${item.rarity}</span></p>
-                        <p class="text-black">Condition: <span class="font-bold">${item.wearName}</span></p>
-                        <p class="text-black">Float Value: <span>${item.float.toFixed(10)}</span></p>
-                        <p class="text-black">Pattern ID: <span>${item.patternId}</span></p>
-                        <p class="text-black">Unboxed: <span>${item.unboxedTime}</span></p>
-                        ${item.isStatTrak ? '<p class="text-blue-400 font-bold">StatTrak™ Enabled</p>' : ''}
-                    </div>
-
-                    ${isWeapon ? `
-                        <div class="classic-border p-2 mb-4 bg-gray-200">
-                            <p class="font-bold mb-2">Apply Nametag (Available: <span id="nametagCountDisplay">${nametagCount}</span>)</p>
-                            <input type="text" id="nametagInput" placeholder="Enter new name (24 Chars Max)" maxlength="24" 
-                                class="classic-inset w-full p-1 mb-2 text-sm bg-white text-black" value="${item.customName || ''}">
-                            <div class="flex justify-start">
-                                <button id="modalApplyNametagBtn" class="action-button bg-blue-600 classic-border text-sm py-1 px-3" disabled>
-                                    ${item.customName ? 'Rename' : 'Apply Nametag'}
-                                </button>
-                            </div>
-                        </div>
-                    ` : ''}
-
-
-                    <div class="mt-4 flex justify-between items-center p-1 classic-inset bg-gray-200">
-                        <span class="text-md font-bold text-green-400">Value: $${item.value.toFixed(2)}</span>
-                        <button id="modalSellBtn" class="action-button bg-red-600 classic-border text-sm py-1 px-3">
-                            Sell Item
-                        </button>
+                    <!-- Item Properties -->
+                    <div class="mt-4 text-left w-full p-4 bg-gray-700 rounded-lg">
+                        <p class="text-lg font-bold">Value: <span class="text-green-400">$${item.value.toFixed(2)}</span></p>
+                        <p class="text-sm pt-2">Condition: <span class="text-white font-semibold">${item.wear}</span></p>
+                        <p class="text-sm">Float Value: <span class="text-gray-300">${item.float}</span></p>
+                        <p class="text-sm">Pattern ID: <span class="text-gray-300">${item.pattern_id}</span></p>
                     </div>
                 `;
-
-                // Show modal
-                inventoryModal.classList.remove('modal-hidden');
-                inventoryModal.classList.add('modal-visible');
-                
-                document.getElementById('closeModalBtn').addEventListener('click', closeModal);
-                document.getElementById('modalSellBtn').addEventListener('click', handleModalSell);
-
-                if (isWeapon) {
-                    const applyBtn = document.getElementById('modalApplyNametagBtn');
-                    const inputElement = document.getElementById('nametagInput');
-
-                    applyBtn.addEventListener('click', handleApplyNametag);
-                    
-                    // Logic to control the Apply/Rename/Remove button state and text
-                    inputElement.addEventListener('input', (e) => {
-                        const inputVal = e.target.value;
-                        const currentCustomName = item.customName || '';
-                        
-                        const isChanging = inputVal !== currentCustomName;
-                        const isApplying = inputVal.length > 0;
-                        const canAfford = nametagCount > 0;
-                        
-                        applyBtn.textContent = inputVal.length === 0 ? 'Remove Nametag' : (currentCustomName.length > 0 ? 'Rename' : 'Apply Nametag');
-                        
-                        if (isChanging) {
-                            if (isApplying) {
-                                // If first time applying, or if renaming, we need a tag
-                                const needsTag = !currentCustomName || (inputVal !== currentCustomName);
-                                applyBtn.disabled = needsTag && !canAfford;
-                            } else {
-                                // If input is empty, and it's a change, it means removal (no tag needed)
-                                applyBtn.disabled = false;
-                            }
-                        } else {
-                            // No change in name, disable button
-                            applyBtn.disabled = true;
-                        }
-                    });
-                    
-                    // Initial state check for the button
-                    applyBtn.disabled = true; 
-                }
+            } else {
+                // Small card for the spinner track (No text on reel)
+                div.className = 'item-card'; 
+                div.style.borderTop = `4px solid ${color}`;
+                div.innerHTML = `
+                    <img src="${imageUrl}" alt="${item.name}" 
+                         onerror="this.src='${placeholderUrl}'">
+                `;
             }
+            return div;
+        }
+
+        /**
+         * Fills the spinner track with items.
+         */
+        function populateSpinner(winningItem) {
+            spinnerTrack.innerHTML = ''; 
             
-            function closeModal() {
-                // Hide modal
-                inventoryModal.classList.remove('modal-visible');
-                inventoryModal.classList.add('modal-hidden');
-                selectedItemIndex = null;
-                // Re-render inventory to update any applied nametags
-                renderInventory(inventoryLog, false);
+            const reelItems = [];
+            for (let i = 0; i < REEL_LENGTH; i++) {
+                const randomItem = pickRandomItem();
+                reelItems.push(randomItem);
             }
 
-            function handleModalSell() {
-                if (selectedItemIndex === null || selectedItemIndex >= inventory.length) {
-                    showNotification("Error: Item index missing or invalid for selling.");
-                    closeModal();
-                    return;
-                }
-                
-                const itemToSell = inventory[selectedItemIndex];
-                money += itemToSell.value;
-                
-                const soldItem = {
-                    ...itemToSell, 
-                    sellDate: new Date().toLocaleString()
-                };
-                sellHistory.push(soldItem); 
-
-                const colorClass = itemToSell.colorClass;
-                const formattedItemName = `<span class="${colorClass} font-bold">${itemToSell.customName ? `"${itemToSell.customName}"` : itemToSell.name}</span>`;
-
-                showNotification(`Sold ${formattedItemName} from inventory for $${itemToSell.value.toFixed(2)}.`);
-                
-                inventory.splice(selectedItemIndex, 1); 
-                
-                closeModal();
-                updateUI(); 
-            }
+            // The winner is placed at a position that lands in the middle of the viewport
+            reelItems[REEL_LENGTH - 6] = winningItem;
             
-            function handleApplyNametag() {
-                if (selectedItemIndex === null) return;
-
-                const item = inventory[selectedItemIndex];
-                const inputElement = document.getElementById('nametagInput');
-                const newName = inputElement.value.trim();
-                const currentCustomName = item.customName || '';
-
-                if (newName.length > 12) {
-                    showNotification("Nametag cannot exceed 12 characters.");
-                    return;
-                }
-                
-                // Case 1: Removing the nametag (input is empty and there is a custom name)
-                if (newName.length === 0 && currentCustomName.length > 0) {
-                    delete item.customName;
-                    showNotification(`Removed nametag from <span class="${item.colorClass} font-bold">${item.name}</span>.`);
-                    closeModal();
-                    updateUI();
-                    return;
-                }
-
-                // Case 2: Applying a new nametag or renaming
-                if (newName.length > 0) {
-                    // Check if renaming AND the name is different, or if first time application
-                    const requiresNewTag = !currentCustomName || (newName !== currentCustomName);
-
-                    if (requiresNewTag) {
-                        if (nametagCount <= 0) {
-                            showNotification("You need a Nametag Kit to apply or rename a weapon.");
-                            return;
-                        }
-                        nametagCount -= 1; // Consume nametag for new application/rename
-                    }
-
-                    item.customName = newName;
-                    showNotification(`Applied nametag <span class="font-bold">"${newName}"</span> to <span class="${item.colorClass} font-bold">${item.name}</span>.`);
-                    closeModal();
-                    updateUI();
-                    return;
-                }
-            }
-            
-            // --- TRADE-UP LOGIC ---
-
-            function resetTradeUpState() {
-                selectedTradeUpIndices = [];
-                requiredTradeUpRarity = null;
-                updateTradeUpUI();
-            }
-
-            function renderTradeUpInventory() {
-                renderInventory(tradeupInventoryLog, true);
-            }
-
-            function updateTradeUpUI() {
-                const count = selectedTradeUpIndices.length;
-                tradeupCount.textContent = `${count} / ${TRADE_UP_COUNT}`;
-                
-                const canExecute = count === TRADE_UP_COUNT;
-                executeTradeUpButton.disabled = !canExecute;
-                
-                // Classic button color logic
-                executeTradeUpButton.classList.toggle('bg-orange-600', canExecute);
-                executeTradeUpButton.classList.toggle('bg-gray-600', !canExecute);
-                executeTradeUpButton.style.color = canExecute ? 'white' : 'var(--color-border-dark)';
-                
-                if (requiredTradeUpRarity) {
-                    tradeupRarity.textContent = `Required Rarity: ${requiredTradeUpRarity}`;
-                    tradeupRarity.className = `text-sm mt-1 font-bold ${rarityMap[requiredTradeUpRarity].colorClass}`;
-
-                    const nextRarity = getNextRarity(requiredTradeUpRarity);
-                    if (nextRarity) {
-                        tradeupOutputName.textContent = `1x Random Item`;
-                        tradeupOutputName.className = `text-lg font-bold ${nextRarity.colorClass}`;
-                        tradeupOutputOdds.textContent = `Rarity: ${nextRarity.name} (100% chance)`;
-                        tradeupOutputOdds.className = `text-sm mt-1 font-bold ${nextRarity.colorClass}`;
-                    } else {
-                        tradeupOutputName.textContent = 'Highest Tier Reached';
-                        tradeupOutputName.className = `text-lg font-bold text-black`;
-                        tradeupOutputOdds.textContent = 'Cannot trade-up this tier.';
-                        tradeupOutputOdds.className = `text-sm text-gray-400 mt-1`;
-                        executeTradeUpButton.disabled = true; 
-                    }
-                } else {
-                    tradeupRarity.textContent = 'Select the first item to set the tier.';
-                    tradeupRarity.className = `text-sm text-gray-400 mt-1`;
-                    tradeupOutputName.textContent = '???';
-                    tradeupOutputName.className = `text-lg font-bold text-black`;
-                    tradeupOutputOdds.textContent = 'Rarity: N/A';
-                    tradeupOutputOdds.className = `text-sm text-gray-400 mt-1`;
-                }
-            }
-
-            function toggleTradeUpSelection(item, index) {
-                if (selectedTradeUpIndices.length === 0 && !getNextRarity(item.rarity)) {
-                    showNotification("Items of this rarity cannot be traded up!");
-                    return;
-                }
-                
-                const isSelected = selectedTradeUpIndices.includes(index);
-                
-                if (isSelected) {
-                    selectedTradeUpIndices = selectedTradeUpIndices.filter(i => i !== index);
-                    
-                    if (selectedTradeUpIndices.length === 0) {
-                        requiredTradeUpRarity = null;
-                    } else if (selectedTradeUpIndices.length > 0) {
-                        const remainingItem = inventory[selectedTradeUpIndices[0]];
-                        requiredTradeUpRarity = remainingItem.rarity;
-                    }
-                } else {
-                    if (requiredTradeUpRarity && item.rarity !== requiredTradeUpRarity) {
-                        showNotification(`You can only select ${requiredTradeUpRarity} items.`);
-                        return;
-                    }
-
-                    if (selectedTradeUpIndices.length >= TRADE_UP_COUNT) {
-                        showNotification(`You can only select ${TRADE_UP_COUNT} items.`);
-                        return;
-                    }
-
-                    if (selectedTradeUpIndices.length === 0) {
-                        requiredTradeUpRarity = item.rarity;
-                    }
-                    selectedTradeUpIndices.push(index);
-                }
-                
-                renderTradeUpInventory(); 
-                updateTradeUpUI(); 
-            }
-
-            function executeTradeUp() {
-                if (selectedTradeUpIndices.length !== TRADE_UP_COUNT) {
-                    showNotification(`You must select exactly ${TRADE_UP_COUNT} items.`);
-                    return;
-                }
-
-                const inputRarityName = requiredTradeUpRarity;
-                const nextRarity = getNextRarity(inputRarityName);
-
-                if (!nextRarity) {
-                    showNotification("Cannot trade up this tier.");
-                    return;
-                }
-                
-                const inputItems = selectedTradeUpIndices.map(i => inventory[i]);
-                const totalFloat = inputItems.reduce((sum, item) => sum + item.float, 0);
-                const averageFloat = totalFloat / TRADE_UP_COUNT;
-                
-                const newItem = generateRandomItem(nextRarity);
-                
-                newItem.float = averageFloat;
-                newItem.wearName = getWearName(averageFloat);
-                const wearFactor = 1 - (averageFloat * 0.5); 
-                let baseValue = Math.random() * (nextRarity.maxSell - nextRarity.minSell) + nextRarity.minSell;
-                newItem.value = baseValue * wearFactor;
-                
-                if (newItem.isStatTrak) {
-                    newItem.value *= 1.20;
-                }
-
-                const finalItem = {
-                    ...newItem,
-                    unboxedTime: new Date().toLocaleString() 
-                };
-                
-                selectedTradeUpIndices.sort((a, b) => b - a).forEach(index => {
-                    inventory.splice(index, 1);
-                });
-                
-                inventory.push(finalItem);
-                
-                resetTradeUpState();
-
-                const formattedItemName = `<span class="${finalItem.colorClass} font-bold">${finalItem.name}</span>`;
-                const rarityColor = finalItem.colorClass;
-
-                showNotification(`
-                    <span class="font-bold ${rarityColor}">TRADE-UP SUCCESS!</span>
-                    <br>Received ${formattedItemName} (${finalItem.wearName})!
-                `, 5000);
-
-                updateUI(); 
-            }
-
-            // --- EVENT LISTENERS ---
-            workButton.addEventListener('click', earn);
-            openCaseButton.addEventListener('click', openCase);
-            instantSellButton.addEventListener('click', instantSellItem);
-            keepItemButton.addEventListener('click', keepItem);
-            executeTradeUpButton.addEventListener('click', executeTradeUp);
-            buyNametagButton.addEventListener('click', buyNametag);
-            
-            // Event listeners for Save/Reset now target the buttons in the Settings view
-            saveGameButton.addEventListener('click', () => {
-                saveGame();
-                showNotification(`<span class="font-bold text-green-400">Game Saved Manually!</span>`);
+            reelItems.forEach(item => {
+                spinnerTrack.appendChild(createItemElement(item));
             });
-            resetGameButton.addEventListener('click', resetGame);
+        }
+
+        /**
+         * Hides the result modal (used when starting a new spin or closing the stats view).
+         */
+        function hideModal() {
+            resultModal.classList.add('hidden');
+            resultModal.classList.remove('visible');
+        }
+
+        /**
+         * The main function to start the spin animation.
+         */
+        function startSpin() {
+            if (openButton.disabled) return;
             
-            // Modal closing listener
-            inventoryModal.addEventListener('click', (e) => {
-                if(e.target === inventoryModal) {
-                    closeModal();
-                }
-            });
+            // 1. Disable button and hide modal
+            openButton.disabled = true;
+            hideModal(); 
+
+            // 2. Pick a winner (Generates all unique properties)
+            const winningItem = pickRandomItem();
             
-            navButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    switchView(button.dataset.view);
-                });
-            });
+            // 3. Populate the spinner 
+            populateSpinner(winningItem);
+
+            // 4. Reset spinner position instantly (no transition)
+            spinnerTrack.style.transition = 'none';
+            spinnerTrack.style.transform = 'translateX(0)';
+
+            // 5. Calculate the final position
+            const winningItemIndex = REEL_LENGTH - 6;
+            const containerWidth = spinnerContainer.clientWidth;
+            
+            // Position to land the *center* of the winning item on the ticker
+            const targetPosition = (winningItemIndex * ITEM_WIDTH_PX) 
+                                 + (ITEM_WIDTH_PX / 2) 
+                                 - (containerWidth / 2);
+
+            // Add a small "jitter" so it doesn't land perfectly
+            const jitter = (Math.random() - 0.5) * (ITEM_WIDTH_PX * 0.4);
+            
+            const finalTranslateX = -(targetPosition + jitter);
+
+            // 6. Force browser to apply the reset 
+            setTimeout(() => {
+                // 7. Apply the CSS transition to animate the spin
+                spinnerTrack.style.transition = 'transform 6s cubic-bezier(0.1, 0.6, 0.1, 1)';
+                spinnerTrack.style.transform = `translateX(${finalTranslateX}px)`;
+            }, 100); 
+
+            // 8. Show the result *after* the animation finishes
+            setTimeout(() => {
+                showResult(winningItem);
+            }, 6100);
+        }
+
+        /**
+         * Shows the UNBOX RESULT modal and sets the context for saving.
+         */
+        function showResult(item) {
+            modalHeader.textContent = 'Unboxed:';
+            modalContent.innerHTML = ''; 
+            modalContent.appendChild(createItemElement(item, true)); 
+            
+            // Set context for saving
+            modalContext = { action: 'save', item: item };
+            closeModalButton.textContent = 'Add to Inventory';
+
+            resultModal.classList.remove('hidden');
+            resultModal.classList.add('visible');
+            openButton.disabled = false;
+        }
+
+        /**
+         * Shows the INVENTORY STATS modal and sets the context for simple closing.
+         */
+        function showInventoryStatsModal(item) {
+            modalHeader.textContent = 'Item Details:';
+            modalContent.innerHTML = '';
+            modalContent.appendChild(createItemElement(item, true));
+
+            // Set context for simple closing
+            modalContext = { action: 'close', item: null };
+            closeModalButton.textContent = 'Close';
+            
+            resultModal.classList.remove('hidden');
+            resultModal.classList.add('visible');
+        }
+
+        /**
+         * Universal handler for the modal button click.
+         * Executes save or close based on modalContext.
+         */
+        function handleModalButtonAction() {
+            if (modalContext.action === 'save' && modalContext.item) {
+                saveItemToInventory(modalContext.item);
+            }
+            // Always hide the modal and reset context
+            hideModal();
+            modalContext = { action: 'close', item: null };
+        }
 
 
-            // --- INITIALIZE ---
-            populateOddsTooltip(); 
-            loadGame(); 
-            switchView('earn'); 
+        /**
+         * Toggles the visibility of the inventory section.
+         */
+        function toggleInventory() {
+            inventorySection.classList.toggle('open');
+            if (inventorySection.classList.contains('open')) {
+                inventoryToggleButton.textContent = 'Hide Inventory';
+            } else {
+                inventoryToggleButton.textContent = 'View Inventory';
+            }
+        }
+
+
+        // --- 6. EVENT LISTENERS & INITIALIZATION ---
+        
+        openButton.addEventListener('click', startSpin);
+        inventoryToggleButton.addEventListener('click', toggleInventory);
+        // CRITICAL FIX: Bind the single, permanent handler to the button
+        closeModalButton.addEventListener('click', handleModalButtonAction); 
+        
+        // Setup initialization only after the window is fully loaded
+        window.addEventListener('load', () => {
+            // Load saved inventory from local storage
+            loadInventory();
+
+            // Initial items for display before the first spin
+            populateSpinner(pickRandomItem());
         });
+
     </script>
+
 </body>
 </html>
-
