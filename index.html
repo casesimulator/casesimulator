@@ -80,9 +80,9 @@
             transform: translateX(-50%);
             width: 4px;
             height: 100%;
-            background: linear-gradient(to bottom, transparent, #fde047, transparent); /* yellow-400 */
+            background: #fde047;
             z-index: 10;
-            box-shadow: 0 0 10px #fde047;
+            box-shadow: 0 0 10px #000000;
         }
 
         /* Modal styles */
@@ -159,7 +159,7 @@
 
         <!-- 1. CASE SELECTION PAGE -->
         <div id="case-selection-page" class="page active">
-            <h2 class="text-3xl font-bold mb-6 text-center">Cases</h2>
+            <h2 class="text-3xl font-bold mb-6 text-center">Select a Case to Open</h2>
             <div id="case-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- Case cards will be generated here -->
             </div>
@@ -206,14 +206,14 @@
                 <!-- Sort & Filter Controls -->
                 <div class="flex gap-2 w-full lg:w-auto">
                     <select id="sort-select" class="bg-gray-700 text-white p-2 rounded text-sm border border-gray-600 outline-none focus:border-blue-500 flex-1">
-                        <option value="newest">Sort: Newest</option>
-                        <option value="value-desc" selected>Sort: $$$ High to Low</option>
-                        <option value="value-asc">Sort: $ Low to High</option>
-                        <option value="rarity">Sort: Rarity</option>
+                        <option value="newest">Newest</option>
+                        <option value="value-desc" selected>High to Low</option>
+                        <option value="value-asc">Low to High</option>
+                        <option value="rarity">Rarity</option>
                     </select>
                     
                     <select id="filter-select" class="bg-gray-700 text-white p-2 rounded text-sm border border-gray-600 outline-none focus:border-blue-500 flex-1">
-                        <option value="all">Filter: All Rarities</option>
+                        <option value="all">All Rarities</option>
                         <option value="Mil-Spec">Mil-Spec (Blue)</option>
                         <option value="Restricted">Restricted (Purple)</option>
                         <option value="Classified">Classified (Pink)</option>
@@ -354,7 +354,7 @@
 
         // --- 2. STATE VARIABLES ---
         let inventory = [];
-        let balance = 500.00;
+        let balance = 1000.00;
         let currentCaseId = null;
         let currentWinningItem = null; 
         
@@ -1001,4 +1001,3 @@
 
 </body>
 </html>
-
