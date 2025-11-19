@@ -143,14 +143,14 @@
         <header class="flex flex-col md:flex-row justify-between items-center py-4 gap-4">
             <div class="flex items-center gap-6">
                 <h1 class="text-3xl md:text-4xl font-black tracking-tighter text-gray-50">
-                    Case Simulator
+                    Case Simulator.
                 </h1>
                 <nav class="flex gap-4">
                     <button id="nav-cases" class="nav-link px-2 md:px-4 py-2 text-lg font-semibold text-gray-400 border-b-2 border-transparent hover:text-blue-400 transition active" data-page="case-selection-page">
                         Cases
                     </button>
                     <button id="nav-clicker" class="nav-link px-2 md:px-4 py-2 text-lg font-semibold text-gray-400 border-b-2 border-transparent hover:text-blue-400 transition" data-page="clicker-page">
-                        Money
+                        Earn
                     </button>
                     <button id="nav-inventory" class="nav-link px-2 md:px-4 py-2 text-lg font-semibold text-gray-400 border-b-2 border-transparent hover:text-blue-400 transition" data-page="inventory-page">
                         Inventory
@@ -196,7 +196,7 @@
 
             <div class="mt-8 flex flex-col items-center space-y-3">
                 <button id="open-button" class="group relative bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-xl font-bold py-4 px-12 rounded-lg shadow-lg transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-700 overflow-hidden">
-                    <span class="relative z-10" id="open-button-text">Open Case</span>
+                    <span class="relative z-10" id="open-button-text">Open Case ($2.50)</span>
                     <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
                 </button>
                 <p id="balance-warning" class="text-red-500 font-semibold opacity-0 transition-opacity">Insufficient Funds!</p>
@@ -263,7 +263,8 @@
 
         <!-- 4. CLICKER PAGE -->
         <div id="clicker-page" class="page">
-            <div class="flex flex-col items-center justify-center min-h-[500px] text-center space-y-8">
+            <!-- Changed justify-center to justify-start and added pt-12 to move content up -->
+            <div class="flex flex-col items-center justify-start min-h-[500px] text-center space-y-8 pt-12">
                 
                 <div class="space-y-2">
                     <h2 class="text-4xl font-bold text-green-400">Earn Money</h2>
@@ -282,21 +283,20 @@
                 <!-- Button updated to match Open Case theme (Rectangular, Rounded, Shadow) -->
                 <button id="clicker-btn" class="group relative bg-green-600 hover:bg-green-500 active:bg-green-700 text-white text-xl font-bold py-6 px-20 rounded-lg shadow-lg transition-all duration-100 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-700 overflow-hidden active:scale-95 transform">
                     <span class="relative z-10 flex flex-col items-center">
-                        <span class="text-2xl uppercase tracking-widest">Get Cash</span>
                         <span class="text-green-200 font-mono mt-1">+$0.25</span>
                     </span>
                     <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
                 </button>
 
                 <p class="text-xs text-gray-500 max-w-md">
-                    Having more than 20 CPS for 5 seconds will result in a temporary cooldown.
+                    Having more than 20 CPS for 3 seconds will result in a temporary cooldown.
                 </p>
             </div>
         </div>
 
         <!-- Notification Slider (Toast) -->
         <div id="notification-slider" class="fixed bottom-8 right-8 bg-red-600 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-4 border border-red-400 z-50 max-w-sm">
-            <div class="text-3xl">⚠️</div>
+            <div class="text-3xl">!</div>
             <div>
                 <h4 class="font-bold text-lg">Action Blocked</h4>
                 <p class="text-sm text-red-100">Clicking too fast! Cooldown active for 10s.</p>
@@ -921,13 +921,13 @@
                 
                 const elapsedHighCps = now - highCpsStart;
                 
-                // Show Warning if maintaining high CPS for > 2 seconds
-                if (elapsedHighCps > 2000) {
+                // Show Warning if maintaining high CPS for > 1.5 seconds
+                if (elapsedHighCps > 1500) {
                     warningContainer.classList.remove('hidden');
                 }
 
-                // Ban Trigger (> 5 seconds)
-                if (elapsedHighCps > 5000) {
+                // Ban Trigger (> 3 seconds)
+                if (elapsedHighCps > 3000) {
                     triggerCooldown();
                 }
             } else {
