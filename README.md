@@ -1,2 +1,2 @@
-[## Play Here
+[Play Here
 ](https://casesimulator.github.io/casesimulator/)
