@@ -207,8 +207,8 @@
                 <div class="flex gap-2 w-full lg:w-auto">
                     <select id="sort-select" class="bg-gray-700 text-white p-2 rounded text-sm border border-gray-600 outline-none focus:border-blue-500 flex-1">
                         <option value="newest">Sort: Newest</option>
-                        <option value="value-desc" selected>Sort: High to Low</option>
-                        <option value="value-asc">Sort: Low to High</option>
+                        <option value="value-desc" selected>Sort: $$$ High to Low</option>
+                        <option value="value-asc">Sort: $ Low to High</option>
                         <option value="rarity">Sort: Rarity</option>
                     </select>
                     
@@ -293,8 +293,9 @@
             { rarity: 'Mil-Spec', cumulativeWeight: 1.00 },     
         ];
 
+        // Fallback price ranges if individual item prices are missing
         const PRICE_RANGES = {
-            'Mil-Spec': { min: 0.03, max: 0.50 }, // Adjusted for realism (loss is possible)
+            'Mil-Spec': { min: 0.03, max: 0.50 }, 
             'Restricted': { min: 0.50, max: 5.00 },
             'Classified': { min: 5.00, max: 30.00 },
             'Covert': { min: 30.00, max: 150.00 },
@@ -303,46 +304,46 @@
         
         const CASES = {
             'CS:GO Weapon Case': {
-                price: 2.50,
-                description: 'The original. High risk, high reward.',
+                price: 85.50,
+                description: 'This container was released on August 14th, 2013, alongside the "The Arms Deal" update.',
                 image: 'https://cdn.csgoskins.gg/public/uih/products/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbl9jYXNlcy9jcmF0ZV92YWx2ZV8xLjIzYzc4M2QwMDViNDQ2YTEwMDRjOTcwNTdjZmI1YWMyZDhkYWUxODYucG5n/auto/auto/85/notrim/5ca053d2ed1cab5e64ec19204f6e4157.webp',
                 items: [
-                    { name: '★ Karambit | Vanilla', rarity: 'Rare Special', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbnMvYmFzZV93ZWFwb25zL3dlYXBvbl9rbmlmZV9rYXJhbWJpdC4zMTQzNTI0MzE3ODMwYjY2OGVkMTdkMTgzYzlhZmVhMDc2ZmNiMTNiLnBuZw--/auto/auto/85/notrim/6223c0d549d5910e00ab6df4a873fb6b.webp' },
-                    { name: '★ Bayonet | Fade', rarity: 'Rare Special', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9iYXlvbmV0X2FhX2ZhZGVfbGlnaHQuNmMyYTNmNDc5NzVlMGRkNTAwODYyNTk2ZTRhNzI2ZTgzYTY0MTE1NS5wbmc-/auto/auto/85/notrim/c90ea76d2766bc3780e548310326f17d.webp' },
-                    { name: '★ Gut Knife | Safari Mesh', rarity: 'Rare Special', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9rbmlmZV9ndXRfc3BfbWVzaF90YW5fbGlnaHQuYmZkOWVhMDY5OGIyNDY5YzE5NDgxMmY5NWIxMDMwMDU0OTc3NTFhNy5wbmc-/auto/auto/85/notrim/fa6c8b52b1dac3098017c79eb364e638.webp' },
-                    { name: 'AWP | Lightning Strike', rarity: 'Covert', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hd3BfYW1fbGlnaHRuaW5nX2F3cF9saWdodC5lZjU0ODcxOTU5YjY1NjE0MWIyNDY5MTI1NmRiYjFkNTQ5YjFlZmJhLnBuZw--/auto/auto/85/notrim/12c1e08907cf2fb660228a4ad6b33c80.webp' },
-                    { name: 'AK-47 | Case Hardened', rarity: 'Classified', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hazQ3X2FxX29pbGVkX2xpZ2h0LmNkMjQxYjIzZjRmYWMyNGQ0NTQyODExZDU1YjIzMTJiMDEzYWY5MTkucG5n/auto/auto/85/notrim/6cd121358f75fbc0574f6b80ffd79d28.webp' },
-                    { name: 'Desert Eagle | Hypnotic', rarity: 'Classified', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9kZWFnbGVfYWFfdmVydGlnb19saWdodC5kNTJmMjdmMDQyMGNkYTQ1ZDMzNTM1ZGExMDA0NjI1ZDU3YTlkYzE1LnBuZw--/auto/auto/85/notrim/86b526041421c2c809df880fc84b6746.webp' },
-                    { name: 'Glock-18 | Dragon Tattoo', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9nbG9ja19hbV9kcmFnb25fZ2xvY2tfbGlnaHQuMjM2YjU4MGVkZjkwMWVhODc5YTAyYjhlYzQzYWI5YzA5MDBhZmZkMy5wbmc-/auto/auto/85/notrim/709be5a02993a2ff20ca1101fe45aca2.webp' },
-                    { name: 'M4A1-S | Dark Water', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tNGExX3NpbGVuY2VyX2FtX3plYnJhX2RhcmtfbGlnaHQuNGMwNzFjYjE0ZWY3NjQ5Y2Q4YzI0MDVhN2QxODI4NGMxYTk1NTYzYi5wbmc-/auto/auto/85/notrim/16a6beda414c67834fd06f5b7de7d1ad.webp' },
-                    { name: 'USP-S | Dark Water', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl91c3Bfc2lsZW5jZXJfYW1femVicmFfZGFya19saWdodC5mYmRkMWJjMWViNmNmOWNmYzdkZTE5YWNmZjc2YjYwZWFjYWExYzhlLnBuZw--/auto/auto/85/notrim/60b0ac168a7199430c43412da21b83fa.webp' },
-                    { name: 'MP7 | Skulls', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tcDdfaHlfc2t1bGxzX2xpZ2h0LjVjYmJkMDI5ZGYzZDY3NmZmZTM0N2E0N2JkODc1MjgxMjc3MDBmOTAucG5n/auto/auto/85/notrim/644b2b252cdf7c9d681965ee7553a1b1.webp' },
-                    { name: 'SG 553 | Ultravoilet', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9zZzU1Nl9zb19wdXJwbGVfbGlnaHQuYzMzODYyYzkxOGQ4NGZmNTAwNDE1NWU2MmQ4ODQ2ZDMxZTMzMDhhMS5wbmc-/auto/auto/85/notrim/adba0de5eda0e04f857c137bd4cb88f8.webp' },
-                    { name: 'AUG | Wings', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hdWdfaHlfZmVhdGhlcnNfYXVnX2xpZ2h0LjQyN2EzMzlkYTc1MzU0OWMwMzA2Mzk3ZTY3NmQ2YmRmZTAwMmI3MGMucG5n/auto/auto/85/notrim/1d8c1432c5efdbe1243ada47b0891fb0.webp' },
+                    { name: '★ M9 Bayonet | Vanilla', rarity: 'Rare Special', minPrice: 830.24, maxPrice: 874.32 , minPriceST: 843.11, maxPriceST: 872.94, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbnMvYmFzZV93ZWFwb25zL3dlYXBvbl9rbmlmZV9rYXJhbWJpdC4zMTQzNTI0MzE3ODMwYjY2OGVkMTdkMTgzYzlhZmVhMDc2ZmNiMTNiLnBuZw--/auto/auto/85/notrim/6223c0d549d5910e00ab6df4a873fb6b.webp' },
+                    { name: '★ M9 Bayonet | Fade', rarity: 'Rare Special', minPrice: 1148.53, maxPrice: 1163.00, minFloat: 0.00, maxFloat: 0.08, minPriceST: 1259.41, maxPriceST: 1406.91, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9rbmlmZV9tOV9iYXlvbmV0X2FhX2ZhZGVfbGlnaHQuNTZlNDM2N2ZkZDRiZGRkMzRiNDIwZjRjOWU4ODhlNjA5NWEyZTM5NC5wbmc-/auto/auto/85/notrim/2c70c8c79659c238b94b85010bfc3723.webp' },
+                    { name: '★ Gut Knife | Safari Mesh', rarity: 'Rare Special', minPrice: 51.55, maxPrice: 242.52, minFloat: 0.06, maxFloat: 0.80, minPriceST: 64.39, maxPriceST: 115.82, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9rbmlmZV9ndXRfc3BfbWVzaF90YW5fbGlnaHQuYmZkOWVhMDY5OGIyNDY5YzE5NDgxMmY5NWIxMDMwMDU0OTc3NTFhNy5wbmc-/auto/auto/85/notrim/fa6c8b52b1dac3098017c79eb364e638.webp' },
+                    { name: 'AWP | Lightning Strike', rarity: 'Covert', minPrice: 552.51, maxPrice: 556.45, minFloat: 0.00, maxFloat: 0.08, minPriceST: 941.00, maxPriceST: 1175.22, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hd3BfYW1fbGlnaHRuaW5nX2F3cF9saWdodC5lZjU0ODcxOTU5YjY1NjE0MWIyNDY5MTI1NmRiYjFkNTQ5YjFlZmJhLnBuZw--/auto/auto/85/notrim/12c1e08907cf2fb660228a4ad6b33c80.webp' },
+                    { name: 'AK-47 | Case Hardened', rarity: 'Classified', minPrice: 161.26, maxPrice: 423.86, minFloat: 0.00, maxFloat: 1.00, minPriceST: 376.28, maxPriceST: 820.00, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hazQ3X2FxX29pbGVkX2xpZ2h0LmNkMjQxYjIzZjRmYWMyNGQ0NTQyODExZDU1YjIzMTJiMDEzYWY5MTkucG5n/auto/auto/85/notrim/6cd121358f75fbc0574f6b80ffd79d28.webp' },
+                    { name: 'Desert Eagle | Hypnotic', rarity: 'Classified', minPrice: 138.29, maxPrice: 146.44, minFloat: 0.00, maxFloat: 0.08, minPriceST: 150, maxPriceST: 250, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9kZWFnbGVfYWFfdmVydGlnb19saWdodC5kNTJmMjdmMDQyMGNkYTQ1ZDMzNTM1ZGExMDA0NjI1ZDU3YTlkYzE1LnBuZw--/auto/auto/85/notrim/86b526041421c2c809df880fc84b6746.webp' },
+                    { name: 'Glock-18 | Dragon Tattoo', rarity: 'Restricted', minPrice: 116.08, maxPrice: 137.09, minFloat: 0.00, maxFloat: 0.08, minPriceST: 319.33, maxPriceST: 338.50, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9nbG9ja19hbV9kcmFnb25fZ2xvY2tfbGlnaHQuMjM2YjU4MGVkZjkwMWVhODc5YTAyYjhlYzQzYWI5YzA5MDBhZmZkMy5wbmc-/auto/auto/85/notrim/709be5a02993a2ff20ca1101fe45aca2.webp' },
+                    { name: 'M4A1-S | Dark Water', rarity: 'Restricted', minPrice: 63.59, maxPrice: 97.66, minFloat: 0.10, maxFloat: 0.26, minPriceST: 110.80, maxPriceST: 142.38, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tNGExX3NpbGVuY2VyX2FtX3plYnJhX2RhcmtfbGlnaHQuNGMwNzFjYjE0ZWY3NjQ5Y2Q4YzI0MDVhN2QxODI4NGMxYTk1NTYzYi5wbmc-/auto/auto/85/notrim/16a6beda414c67834fd06f5b7de7d1ad.webp' },
+                    { name: 'USP-S | Dark Water', rarity: 'Restricted', minPrice: 62.69, maxPrice: 89.29, minFloat: 0.10, maxFloat: 0.26, minPriceST: 106.89, maxPriceST: 132.64, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl91c3Bfc2lsZW5jZXJfYW1femVicmFfZGFya19saWdodC5mYmRkMWJjMWViNmNmOWNmYzdkZTE5YWNmZjc2YjYwZWFjYWExYzhlLnBuZw--/auto/auto/85/notrim/60b0ac168a7199430c43412da21b83fa.webp' },
+                    { name: 'MP7 | Skulls', rarity: 'Mil-Spec', minPrice: 12.42, maxPrice: 13.58, minPriceST: 17.69, maxPriceST: 18.17,image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tcDdfaHlfc2t1bGxzX2xpZ2h0LjVjYmJkMDI5ZGYzZDY3NmZmZTM0N2E0N2JkODc1MjgxMjc3MDBmOTAucG5n/auto/auto/85/notrim/644b2b252cdf7c9d681965ee7553a1b1.webp' },
+                    { name: 'SG 553 | Ultravoilet', rarity: 'Mil-Spec', minPrice: 12.85, maxPrice: 39.97, minFloat: 0.06, maxFloat: 0.80, minPriceST: 17.18, maxPriceST: 118.52, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9zZzU1Nl9zb19wdXJwbGVfbGlnaHQuYzMzODYyYzkxOGQ4NGZmNTAwNDE1NWU2MmQ4ODQ2ZDMxZTMzMDhhMS5wbmc-/auto/auto/85/notrim/adba0de5eda0e04f857c137bd4cb88f8.webp' },
+                    { name: 'AUG | Wings', rarity: 'Mil-Spec', minPrice: 13.45, maxPrice: 13.98, minFloat: 0.00, maxFloat: 0.14, minPriceST: 18.44, maxPriceST: 18.54, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hdWdfaHlfZmVhdGhlcnNfYXVnX2xpZ2h0LjQyN2EzMzlkYTc1MzU0OWMwMzA2Mzk3ZTY3NmQ2YmRmZTAwMmI3MGMucG5n/auto/auto/85/notrim/1d8c1432c5efdbe1243ada47b0891fb0.webp' },
                 ],
             },
-            'Operation Bravo Case': {
-                price: 2.50,
-                description: 'Classic collection featuring the Fire Serpent.',
+            'Operation Bravo Case (Coming Soon)': {
+                price: 2000000.00,
+                description: 'This container was released on September 19th, 2013, alongside the "Operation Bravo" update.',
                 image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbl9jYXNlcy9jcmF0ZV9vcGVyYXRpb25faWkuNWU1MTA0YTYyOTE3NDFjNTY5M2ExZTc4YmQ2ZWNjOTU2MGI1MWYwYS5wbmc-/auto/auto/85/notrim/e3493f6785b73327ce8cb43fe7b1f37f.webp', // Red
                 items: [
-                    { name: '★ M9 Bayonet | Vanilla', rarity: 'Rare Special', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbnMvYmFzZV93ZWFwb25zL3dlYXBvbl9rbmlmZV9tOV9iYXlvbmV0Ljg4M2NhNTlhN2NjZmE2MTYzOTYzYjYwYzY5Y2RkMzk0YzJiODdhNWUucG5n/auto/auto/85/notrim/312b5ccca278ebd5bff9d8c44ff2173d.webp' },
-                    { name: '★ M9 Bayonet | Fade', rarity: 'Rare Special', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9rbmlmZV9tOV9iYXlvbmV0X2FhX2ZhZGVfbGlnaHQuNTZlNDM2N2ZkZDRiZGRkMzRiNDIwZjRjOWU4ODhlNjA5NWEyZTM5NC5wbmc-/auto/auto/85/notrim/2c70c8c79659c238b94b85010bfc3723.webp' },
-                    { name: '★ Flip Knife | Scorched', rarity: 'Rare Special', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9rbmlmZV9mbGlwX3NwX2RhcHBsZV9saWdodC4wYzcwMzVhNDdjMjU4MDY4MDc0MWJhZDcwYzFhNTc4YTkzZDNlNzk2LnBuZw--/auto/auto/85/notrim/468e742b3d6764eb62bb5f9587f4f975.webp' },
-                    { name: 'Desert Eagle | Golden Koi', rarity: 'Covert', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9kZWFnbGVfYW1fc2NhbGVzX2JyYXZvX2xpZ2h0LjZkMGFiZWE5MTcwMTE2ZGYzYWU0MmJlMjIyMWM0NDY5ZDM4ZmYwMGQucG5n/auto/auto/85/notrim/94aca31109fa537231bd6614725f5dd4.webp' },
-                    { name: 'AK-47 | Fire Serpent', rarity: 'Covert', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hazQ3X2N1X2ZpcmVzZXJwZW50X2FrNDdfYnJhdm9fbGlnaHQuYzU3YTA4MmRlZjAyNjYyY2ZkYjEzYzU0M2UwZDUwZGZkM2Q2ZGE0ZC5wbmc-/auto/auto/85/notrim/816d04693ab5653bcc656e5bf0562227.webp' },
-                    { name: 'AWP | Graphite', rarity: 'Classified', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hd3BfYW1fY3J1bXBsZV9icmF2b19saWdodC5mNWVjYTJiNDJiNjBjNzQ0NWM0MmRkOWZmYjdjYjEwMzQ5MzlmNjVmLnBuZw--/auto/auto/85/notrim/215e5f3636c1531020654672b8153859.webp' },
-                    { name: 'P2000 | Ocean Foam', rarity: 'Classified', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9oa3AyMDAwX2FtX29zc2lmeV9ibHVlX3AyMDAwX2JyYXZvX2xpZ2h0LmE5NWM0YjVjZjY2NmEzZWZhNzVmMTlmZTIxOWI4M2ZjMzBkYzg0YjMucG5n/auto/auto/85/notrim/1f6592b8cdebd455dc09985f0a4d1416.webp' },
-                    { name: 'P90 | Emerald Dragon', rarity: 'Classified', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9wOTBfY3VfZHJhZ29uX3A5MF9icmF2b19saWdodC41MTk4YTc2NDc4M2M3OWNkYmMzMzljODA1NDViNjYyNTA4NTJlYzMyLnBuZw--/auto/auto/85/notrim/b025103b5b2d4d3dd6fdecf9e42d1dfc.webp' },
-                    { name: 'M4A1-S | Bright Water', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tNGExX3NpbGVuY2VyX2h5X29jZWFuX2JyYXZvX2xpZ2h0LjBiMmE3NDMyNjE4YzhkOWFlYTlmN2MyY2YxMzc2YzhlMzczZmY4ZDQucG5n/auto/auto/85/notrim/e78c8f48f1351807369ace4998eb6c26.webp' },
-                    { name: 'USP-S | Overgrowth', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl91c3Bfc2lsZW5jZXJfaHlfc2llZ2VfYnJhdm9fbGlnaHQuMDY3OThmMGI4NTc1MjVhNWJjMzg4N2ExODRiYjJhNWYzMzJhNmM1Yi5wbmc-/auto/auto/85/notrim/071aa3e3450d8ecc6d845cb9a58474f6.webp' },
-                    { name: 'M4A4 | Zirka', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tNGExX3NwX3N0YXJfYnJhdm9fbGlnaHQuYjMyNzczOTA4NzU1OTZlNjllNzk5ZGY2ZTU0N2U1YTRmNTQ3ZTc3My5wbmc-/auto/auto/85/notrim/9d85a9dedecd44445ec8d01bbe73cd3f.webp' },
-                    { name: 'MAC-10 | Graven', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tYWMxMF9hcV9ldGNoZWRfbWFjMTBfYnJhdm9fbGlnaHQuNTA5Mzg2NjJkMTUzM2UzNGRlODk0Mjc5MjcwNmNkMTBlMzAyNTI4OC5wbmc-/auto/auto/85/notrim/12a0da54ac7f1bf15a126849415ee2a0.webp' },
-                    { name: 'Galil AR | Shattered', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9nYWxpbGFyX2h5X2NydW1wbGVfYnJhdm9fbGlnaHQuMjBmYWI1OWFmNjgwYmI2MjAzYjExMTM2NjRlZjA5MTM2MDg1OGEwNC5wbmc-/auto/auto/85/notrim/ad5084005f3c2b31082f2ef2ccbd224c.webp' },
-                    { name: 'Nova | Tempest', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9ub3ZhX2h5X3NlYXNpZGVfYnJhdm9fbGlnaHQuNjI1MWIwMDVlYTQ3NWUyMGNkODMyNmRhMTFiYjM0MTZlMzZlYTQ5YS5wbmc-/auto/auto/85/notrim/f9dc64a6822e0b8579af670629d3ab78.webp' },
-                    { name: 'UMP-45 | Bone Pile', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl91bXA0NV9zcF9za3VsbF9kaWFncmFtX2JyYXZvX2xpZ2h0LjUzZjk3N2MyN2I0ZjlkMWIxNWRhODgwOGQ4MGQ4ZDBmYTdiYmI1NjAucG5n/auto/auto/85/notrim/e3ab906cb57684aed3610df7696f1212.webp' },
-                    { name: 'SG 553 | Wave Spray', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9zZzU1Nl9zcF9zcHJheV93YXZlc19icmF2b19saWdodC4zMDFjMDg5ZTFhZmZjOTBiZmRjODZkN2Y5ZTEwM2U0OWZmYThlMmI1LnBuZw--/auto/auto/85/notrim/58862d24ee4454d5062be107b8aeb116.webp' },
-                    { name: 'Dual Berettas', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9lbGl0ZV9jdV9zZWFzb25fZWxpdGVzX2JyYXZvX2xpZ2h0Ljk5MmFhM2VkMDI2NjllZTZkNjJjMzc3ZTU5YmRmZmQ2OWI4ZjE1MGIucG5n/auto/auto/85/notrim/77c547e6567d2b45c4e9b2468a4702a8.webp' },
+                    { name: '★ M9 Bayonet | Vanilla', rarity: 'Rare Special', minPrice: 950, maxPrice: 1200, minPriceST: 1600, maxPriceST: 2000, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbnMvYmFzZV93ZWFwb25zL3dlYXBvbl9rbmlmZV9tOV9iYXlvbmV0Ljg4M2NhNTlhN2NjZmE2MTYzOTYzYjYwYzY5Y2RkMzk0YzJiODdhNWUucG5n/auto/auto/85/notrim/312b5ccca278ebd5bff9d8c44ff2173d.webp' },
+                    { name: '★ M9 Bayonet | Fade', rarity: 'Rare Special', minPrice: 1300, maxPrice: 1800, minFloat: 0.00, maxFloat: 0.08, minPriceST: 2200, maxPriceST: 3500, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9rbmlmZV9tOV9iYXlvbmV0X2FhX2ZhZGVfbGlnaHQuNTZlNDM2N2ZkZDRiZGRkMzRiNDIwZjRjOWU4ODhlNjA5NWEyZTM5NC5wbmc-/auto/auto/85/notrim/2c70c8c79659c238b94b85010bfc3723.webp' },
+                    { name: '★ Flip Knife | Scorched', rarity: 'Rare Special', minPrice: 85, maxPrice: 130, minFloat: 0.06, maxFloat: 0.80, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9rbmlmZV9mbGlwX3NwX2RhcHBsZV9saWdodC4wYzcwMzVhNDdjMjU4MDY4MDc0MWJhZDcwYzFhNTc4YTkzZDNlNzk2LnBuZw--/auto/auto/85/notrim/468e742b3d6764eb62bb5f9587f4f975.webp' },
+                    { name: 'Desert Eagle | Golden Koi', rarity: 'Covert', minPrice: 75, maxPrice: 120, minFloat: 0.00, maxFloat: 0.12, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9kZWFnbGVfYW1fc2NhbGVzX2JyYXZvX2xpZ2h0LjZkMGFiZWE5MTcwMTE2ZGYzYWU0MmJlMjIyMWM0NDY5ZDM4ZmYwMGQucG5n/auto/auto/85/notrim/94aca31109fa537231bd6614725f5dd4.webp' },
+                    { name: 'AK-47 | Fire Serpent', rarity: 'Covert', minPrice: 650, maxPrice: 1400, minFloat: 0.06, maxFloat: 0.76, minPriceST: 1800, maxPriceST: 4500, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hazQ3X2N1X2ZpcmVzZXJwZW50X2FrNDdfYnJhdm9fbGlnaHQuYzU3YTA4MmRlZjAyNjYyY2ZkYjEzYzU0M2UwZDUwZGZkM2Q2ZGE0ZC5wbmc-/auto/auto/85/notrim/816d04693ab5653bcc656e5bf0562227.webp' },
+                    { name: 'AWP | Graphite', rarity: 'Classified', minPrice: 160, maxPrice: 250, minFloat: 0.00, maxFloat: 0.12, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hd3BfYW1fY3J1bXBsZV9icmF2b19saWdodC5mNWVjYTJiNDJiNjBjNzQ0NWM0MmRkOWZmYjdjYjEwMzQ5MzlmNjVmLnBuZw--/auto/auto/85/notrim/215e5f3636c1531020654672b8153859.webp' },
+                    { name: 'P2000 | Ocean Foam', rarity: 'Classified', minPrice: 110, maxPrice: 180, minFloat: 0.00, maxFloat: 0.12, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9oa3AyMDAwX2FtX29zc2lmeV9ibHVlX3AyMDAwX2JyYXZvX2xpZ2h0LmE5NWM0YjVjZjY2NmEzZWZhNzVmMTlmZTIxOWI4M2ZjMzBkYzg0YjMucG5n/auto/auto/85/notrim/1f6592b8cdebd455dc09985f0a4d1416.webp' },
+                    { name: 'P90 | Emerald Dragon', rarity: 'Classified', minPrice: 75, maxPrice: 180, minFloat: 0.06, maxFloat: 0.52, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9wOTBfY3VfZHJhZ29uX3A5MF9icmF2b19saWdodC41MTk4YTc2NDc4M2M3OWNkYmMzMzljODA1NDViNjYyNTA4NTJlYzMyLnBuZw--/auto/auto/85/notrim/b025103b5b2d4d3dd6fdecf9e42d1dfc.webp' },
+                    { name: 'M4A1-S | Bright Water', rarity: 'Restricted', minPrice: 20, maxPrice: 40, minFloat: 0.10, maxFloat: 0.22, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tNGExX3NpbGVuY2VyX2h5X29jZWFuX2JyYXZvX2xpZ2h0LjBiMmE3NDMyNjE4YzhkOWFlYTlmN2MyY2YxMzc2YzhlMzczZmY4ZDQucG5n/auto/auto/85/notrim/e78c8f48f1351807369ace4998eb6c26.webp' },
+                    { name: 'USP-S | Overgrowth', rarity: 'Restricted', minPrice: 25, maxPrice: 60, minFloat: 0.06, maxFloat: 0.80, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl91c3Bfc2lsZW5jZXJfaHlfc2llZ2VfYnJhdm9fbGlnaHQuMDY3OThmMGI4NTc1MjVhNWJjMzg4N2ExODRiYjJhNWYzMzJhNmM1Yi5wbmc-/auto/auto/85/notrim/071aa3e3450d8ecc6d845cb9a58474f6.webp' },
+                    { name: 'M4A4 | Zirka', rarity: 'Restricted', minPrice: 20, maxPrice: 35, minFloat: 0.06, maxFloat: 0.42, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tNGExX3NwX3N0YXJfYnJhdm9fbGlnaHQuYjMyNzczOTA4NzU1OTZlNjllNzk5ZGY2ZTU0N2U1YTRmNTQ3ZTc3My5wbmc-/auto/auto/85/notrim/9d85a9dedecd44445ec8d01bbe73cd3f.webp' },
+                    { name: 'MAC-10 | Graven', rarity: 'Restricted', minPrice: 15, maxPrice: 30, minFloat: 0.06, maxFloat: 0.80, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tYWMxMF9hcV9ldGNoZWRfbWFjMTBfYnJhdm9fbGlnaHQuNTA5Mzg2NjJkMTUzM2UzNGRlODk0Mjc5MjcwNmNkMTBlMzAyNTI4OC5wbmc-/auto/auto/85/notrim/12a0da54ac7f1bf15a126849415ee2a0.webp' },
+                    { name: 'Galil AR | Shattered', rarity: 'Mil-Spec', minPrice: 4, maxPrice: 10, minFloat: 0.06, maxFloat: 0.80, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9nYWxpbGFyX2h5X2NydW1wbGVfYnJhdm9fbGlnaHQuMjBmYWI1OWFmNjgwYmI2MjAzYjExMTM2NjRlZjA5MTM2MDg1OGEwNC5wbmc-/auto/auto/85/notrim/ad5084005f3c2b31082f2ef2ccbd224c.webp' },
+                    { name: 'Nova | Tempest', rarity: 'Mil-Spec', minPrice: 4, maxPrice: 8, minFloat: 0.06, maxFloat: 0.22, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9ub3ZhX2h5X3NlYXNpZGVfYnJhdm9fbGlnaHQuNjI1MWIwMDVlYTQ3NWUyMGNkODMyNmRhMTFiYjM0MTZlMzZlYTQ5YS5wbmc-/auto/auto/85/notrim/f9dc64a6822e0b8579af670629d3ab78.webp' },
+                    { name: 'UMP-45 | Bone Pile', rarity: 'Mil-Spec', minPrice: 3, maxPrice: 8, minFloat: 0.06, maxFloat: 0.30, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl91bXA0NV9zcF9za3VsbF9kaWFncmFtX2JyYXZvX2xpZ2h0LjUzZjk3N2MyN2I0ZjlkMWIxNWRhODgwOGQ4MGQ4ZDBmYTdiYmI1NjAucG5n/auto/auto/85/notrim/e3ab906cb57684aed3610df7696f1212.webp' },
+                    { name: 'SG 553 | Wave Spray', rarity: 'Mil-Spec', minPrice: 5, maxPrice: 12, minFloat: 0.06, maxFloat: 0.80, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9zZzU1Nl9zcF9zcHJheV93YXZlc19icmF2b19saWdodC4zMDFjMDg5ZTFhZmZjOTBiZmRjODZkN2Y5ZTEwM2U0OWZmYThlMmI1LnBuZw--/auto/auto/85/notrim/58862d24ee4454d5062be107b8aeb116.webp' },
+                    { name: 'Dual Berettas', rarity: 'Restricted', minPrice: 5, maxPrice: 10, minFloat: 0.06, maxFloat: 0.80, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9lbGl0ZV9jdV9zZWFzb25fZWxpdGVzX2JyYXZvX2xpZ2h0Ljk5MmFhM2VkMDI2NjllZTZkNjJjMzc3ZTU5YmRmZmQ2OWI4ZjE1MGIucG5n/auto/auto/85/notrim/77c547e6567d2b45c4e9b2468a4702a8.webp' },
                 ],
             },
         };
@@ -397,7 +398,7 @@
             if (stored) {
                 balance = parseFloat(stored);
             } else {
-                balance = 50.00; 
+                balance = 1000.00; 
             }
             updateBalanceDisplay();
         }
@@ -491,7 +492,7 @@
             calculateInventoryValue();
 
             if (inventory.length === 0) {
-                inventoryGrid.innerHTML = '<p class="text-gray-400 text-center col-span-full py-12 text-lg flex flex-col items-center"><span class="text-4xl mb-2"></span>Inventory Empty</p>';
+                inventoryGrid.innerHTML = '<p class="text-gray-400 text-center col-span-full py-12 text-lg flex flex-col items-center"><span class="text-4xl mb-2">🎒</span>Inventory Empty</p>';
                 return;
             }
             
@@ -536,10 +537,19 @@
                 itemEl.addEventListener('click', () => showModal(item, 'inventory'));
 
                 const wearAcronym = item.wear ? item.wear.match(/\((.*?)\)/)?.[1] || '' : '';
+                
+                // Formatting name for display (remove 'StatTrak™' for small card to save space, or keep it if you prefer)
+                // Let's keep it but truncate if too long
+                let displayName = item.name;
+                
+                const stBadge = item.isStatTrak 
+                    ? `<span class="absolute top-1 left-1 text-[10px] font-bold bg-orange-600/90 px-1 rounded text-white">ST™</span>` 
+                    : '';
 
                 itemEl.innerHTML = `
                     <img src="${item.image}" alt="${item.name}" onerror="this.src='https://placehold.co/80x60/2d3748/FFF?text=Image'">
-                    <p class="text-xs font-semibold mt-2 text-white text-center truncate w-full px-1 group-hover:text-blue-300 transition-colors">${item.name}</p>
+                    ${stBadge}
+                    <p class="text-xs font-semibold mt-2 text-white text-center truncate w-full px-1 group-hover:text-blue-300 transition-colors">${displayName}</p>
                     <p class="text-xs text-green-400 font-bold mt-1">$${item.value.toFixed(2)}</p>
                     <span class="absolute top-1 right-1 text-[10px] font-bold bg-gray-900/70 px-1 rounded-bl-lg text-gray-300">${wearAcronym}</span>
                 `;
@@ -627,24 +637,83 @@
 
         // --- 7. SIMULATOR & GENERATION ---
 
-        function generateFloatAndWear() {
-            const float = (Math.random() * 0.9999).toFixed(4);
-            let wear = '';
+        function generateFloatAndWear(min = 0.0, max = 1.0) {
+            // Ensure min/max are numbers
+            const minF = parseFloat(min);
+            const maxF = parseFloat(max);
+            
+            // Generate random float within custom range
+            const randomVal = Math.random() * (maxF - minF) + minF;
+            const float = randomVal.toFixed(4);
             const f = parseFloat(float);
-            if (f >= 0.00 && f <= 0.07) wear = 'Factory New (FN)';
-            else if (f > 0.07 && f <= 0.15) wear = 'Minimal Wear (MW)';
-            else if (f > 0.15 && f <= 0.38) wear = 'Field-Tested (FT)';
-            else if (f > 0.38 && f <= 0.45) wear = 'Well-Worn (WW)';
+            
+            let wear = '';
+            if (f <= 0.07) wear = 'Factory New (FN)';
+            else if (f <= 0.15) wear = 'Minimal Wear (MW)';
+            else if (f <= 0.38) wear = 'Field-Tested (FT)';
+            else if (f <= 0.45) wear = 'Well-Worn (WW)';
             else wear = 'Battle-Scarred (BS)';
+            
             return { float, wear };
         }
 
-        function generateItemValue(rarity) {
-            const range = PRICE_RANGES[rarity] || PRICE_RANGES['Mil-Spec'];
-            const min = range.min;
-            const max = range.max;
-            const value = (Math.random() * (max - min) + min).toFixed(2);
-            return parseFloat(value);
+        function generateItemValue(item, floatVal, minFloat, maxFloat, isStatTrak) {
+            // First check for specific range on the item itself
+            let min, max;
+            
+            // Determine Base Range
+            if (isStatTrak) {
+                // StatTrak Logic
+                if (item.minPriceST !== undefined && item.maxPriceST !== undefined) {
+                    min = item.minPriceST;
+                    max = item.maxPriceST;
+                } else if (item.minPrice !== undefined && item.maxPrice !== undefined) {
+                    // Fallback: 1.5x normal price if no specific ST price set
+                    min = item.minPrice * 1.5;
+                    max = item.maxPrice * 1.5;
+                } else {
+                    // Fallback: Rarity defaults * 1.5
+                    const range = PRICE_RANGES[item.rarity] || PRICE_RANGES['Mil-Spec'];
+                    min = range.min * 1.5;
+                    max = range.max * 1.5;
+                }
+            } else {
+                // Normal Logic
+                if (item.minPrice !== undefined && item.maxPrice !== undefined) {
+                    min = item.minPrice;
+                    max = item.maxPrice;
+                } else {
+                    const range = PRICE_RANGES[item.rarity] || PRICE_RANGES['Mil-Spec'];
+                    min = range.min;
+                    max = range.max;
+                }
+            }
+            
+            const f = parseFloat(floatVal);
+            const minF = (minFloat !== undefined) ? minFloat : 0.0;
+            const maxF = (maxFloat !== undefined) ? maxFloat : 1.0;
+            
+            // Quality Calculation
+            let qualityFactor = 1.0;
+            if (maxF > minF) {
+                qualityFactor = (maxF - f) / (maxF - minF);
+            }
+
+            if (qualityFactor < 0) qualityFactor = 0;
+            if (qualityFactor > 1) qualityFactor = 1;
+            
+            // Price Calculation
+            let exactValue = min + ((max - min) * qualityFactor);
+            
+            // Jitter
+            const jitter = 0.99 + (Math.random() * 0.02); 
+            exactValue = exactValue * jitter;
+
+            // Strict Clamp
+            if (exactValue < min) exactValue = min;
+            if (exactValue > max) exactValue = max; 
+
+            return parseFloat(exactValue.toFixed(2));
         }
 
         function pickRandomItem(caseId) {
@@ -663,11 +732,28 @@
             const potentialItems = itemPool.filter(item => item.rarity === winningRarity);
             const baseItem = potentialItems[Math.floor(Math.random() * potentialItems.length)] || itemPool[0]; 
 
-            const { float, wear } = generateFloatAndWear();
+            const minFloat = baseItem.minFloat !== undefined ? baseItem.minFloat : 0.00;
+            const maxFloat = baseItem.maxFloat !== undefined ? baseItem.maxFloat : 1.00;
+            const { float, wear } = generateFloatAndWear(minFloat, maxFloat);
+
+            // StatTrak Logic (10% chance)
+            const isStatTrak = Math.random() <= 0.10;
+
+            // Format Name
+            let finalName = baseItem.name;
+            if (isStatTrak) {
+                if (finalName.startsWith('★')) {
+                    finalName = finalName.replace('★ ', '★ StatTrak™ ');
+                } else {
+                    finalName = 'StatTrak™ ' + finalName;
+                }
+            }
 
             return {
                 ...baseItem,
-                value: generateItemValue(baseItem.rarity),
+                name: finalName,
+                isStatTrak: isStatTrak,
+                value: generateItemValue(baseItem, float, minFloat, maxFloat, isStatTrak),
                 float: float,
                 wear: wear,
                 pattern_id: Math.floor(Math.random() * 1000) + 1, 
@@ -682,17 +768,26 @@
             const color = RARITY_COLORS[item.rarity];
             const imageUrl = item.image;
             const placeholderTextSize = isLarge ? '150x100/1f2937/FFFFFF?text=' : '120x80/2d3748/FFFFFF?text=';
-            const placeholderName = item.name.split('|')[0].trim();
+            const placeholderName = item.name.split('|')[0].replace('StatTrak™', '').replace('★', '').trim();
             const placeholderUrl = `https://placehold.co/${placeholderTextSize}${placeholderName.replace(/ /g, '+')}`;
 
             if (isLarge) {
                 div.className = 'flex flex-col items-center w-full';
                 div.style.borderTop = `8px solid ${color}`;
+                
+                // Badge for large view
+                const stBadge = item.isStatTrak 
+                    ? `<span class="bg-orange-600 text-white px-2 py-1 rounded text-xs font-bold uppercase tracking-wide mb-2">StatTrak™</span>` 
+                    : '';
+
                 div.innerHTML = `
                     <img src="${imageUrl}" alt="${item.name}" class="w-full h-48 object-contain bg-gray-900 rounded-md mt-4 shadow-lg" 
                          onerror="this.src='${placeholderUrl.replace('120x80', '150x100')}'">
                     <h3 class="text-2xl font-bold mt-4 text-center leading-tight">${item.name}</h3>
-                    <p class="item-card-rarity text-lg mb-2" style="color: ${color};">${item.rarity}</p>
+                    <div class="flex items-center gap-2 mb-2">
+                        ${stBadge}
+                        <p class="item-card-rarity text-lg" style="color: ${color};">${item.rarity}</p>
+                    </div>
                     
                     <div class="mt-2 text-left w-full p-4 bg-gray-700 rounded-lg text-sm">
                         <div class="flex justify-between items-center mb-2 border-b border-gray-600 pb-2">
@@ -702,6 +797,7 @@
                         <p class="flex justify-between"><span class="text-gray-400">Condition:</span> <span class="text-white">${item.wear}</span></p>
                         <p class="flex justify-between"><span class="text-gray-400">Float:</span> <span class="text-gray-300 font-mono">${item.float}</span></p>
                         <p class="flex justify-between"><span class="text-gray-400">Pattern:</span> <span class="text-gray-300">${item.pattern_id}</span></p>
+                        <p class="flex justify-between"><span class="text-gray-400">StatTrak:</span> <span class="${item.isStatTrak ? 'text-orange-400 font-bold' : 'text-gray-500'}">${item.isStatTrak ? 'Yes' : 'No'}</span></p>
                     </div>
                 `;
             } else {
@@ -806,6 +902,7 @@
         // --- 9. MODAL SYSTEM ---
 
         function showModal(item, type) {
+            resultModal.dataset.type = type; // Track context for click-outside logic
             modalContent.innerHTML = ''; 
             modalContent.appendChild(createItemElement(item, true));
             
@@ -842,6 +939,7 @@
         function hideModal() {
             resultModal.classList.add('hidden');
             resultModal.classList.remove('visible');
+            resultModal.dataset.type = ''; // Reset context
         }
 
 
@@ -865,7 +963,14 @@
         bulkSellBtn.addEventListener('click', handleBulkSell);
         
         resultModal.addEventListener('click', (e) => {
-            if (e.target === resultModal) hideModal();
+            if (e.target === resultModal) {
+                // If clicking outside during unbox, auto-collect instead of just closing
+                if (resultModal.dataset.type === 'unbox' && currentWinningItem) {
+                    keepItem(currentWinningItem);
+                } else {
+                    hideModal();
+                }
+            }
         });
 
         navLinks.forEach(link => {
