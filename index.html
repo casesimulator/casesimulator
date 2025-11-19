@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CS2 Weapon Case</title>
-    <!-- 1. Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 2. Load Inter font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>CS2 Multi-Case Simulator</title>
+    <!-- 1. Load Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
+    <!-- 2. Load Inter font --><link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
@@ -22,14 +20,11 @@
         #spinner-track {
             display: flex;
             height: 100%;
-            /* The transition is what creates the "spin" animation */
-            /* We use cubic-bezier for a realistic "slow down" effect */
             transition: transform 6s cubic-bezier(0.1, 0.6, 0.1, 1);
         }
 
         /* Each item in the spinner */
         .item-card {
-            /* CRITICAL: We use a fixed px width to make calculations reliable. */
             width: 160px;
             height: 100%;
             flex-shrink: 0;
@@ -52,7 +47,7 @@
             border-radius: 4px;
         }
 
-        /* Inventory Item Card Styling (Used in the Inventory Grid) */
+        /* Inventory Item Card Styling */
         .item-card-inventory {
             width: 100%;
             height: 120px;
@@ -60,12 +55,12 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background-color: #1a202c; /* dark background for items */
+            background-color: #1a202c; 
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
             padding: 8px;
             position: relative;
-            cursor: pointer; /* Indicate it's clickable */
+            cursor: pointer; 
             transition: transform 0.15s ease, opacity 0.15s ease;
         }
         .item-card-inventory:hover {
@@ -77,7 +72,7 @@
             height: 60px;
         }
 
-        /* The "ticker" that shows where the spinner will land (Back to Yellow) */
+        /* The "ticker" that shows where the spinner will land */
         #ticker {
             position: absolute;
             top: 0;
@@ -103,83 +98,93 @@
             visibility: visible;
         }
 
-        /* Inventory Toggle Transition */
-        #inventory-section {
-            max-height: 0;
-            transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out;
-            overflow: hidden;
+        .page {
+            display: none;
         }
-        #inventory-section.open {
-            max-height: 1000px; /* Large enough to accommodate content */
-            padding-top: 1.5rem;
+        .page.active {
+            display: block;
+        }
+
+        .nav-link.active {
+            border-color: #3b82f6; /* blue-500 */
+            color: #3b82f6;
         }
     </style>
 </head>
 <body class="bg-gray-900 text-white flex flex-col items-center p-4">
 
-    <div class="w-full max-w-6xl">
-        <div class="flex justify-between items-start mb-6 w-full">
-            <h1 class="text-4xl font-black tracking-tighter">
-                Weapon Case
+    <!-- Global Navigation -->
+    <div class="w-full max-w-6xl mb-8 border-b border-gray-700">
+        <header class="flex justify-between items-center py-4">
+            <h1 class="text-4xl font-black tracking-tighter text-gray-50">
+                CS2 Case Sim
             </h1>
-            <button id="inventory-toggle-button" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition duration-200">
-                View Inventory
-            </button>
+            <nav>
+                <button id="nav-cases" class="nav-link px-4 py-2 text-lg font-semibold text-gray-400 border-b-2 border-transparent hover:text-blue-400 transition active" data-page="case-selection-page">
+                    Cases
+                </button>
+                <button id="nav-inventory" class="nav-link px-4 py-2 text-lg font-semibold text-gray-400 border-b-2 border-transparent hover:text-blue-400 transition" data-page="inventory-page">
+                    Inventory
+                </button>
+            </nav>
+        </header>
+    </div>
+
+    <!-- MAIN PAGE CONTAINER -->
+    <main class="w-full max-w-6xl">
+
+        <!-- 1. CASE SELECTION PAGE -->
+        <div id="case-selection-page" class="page active">
+            <h2 class="text-3xl font-bold mb-6 text-center">Select a Case to Open</h2>
+            <div id="case-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Case cards will be generated here -->
+            </div>
         </div>
-    </div>
 
-    <!-- 
-      This is the main spinner viewport. 
-    -->
-    <div id="spinner-container" class="relative w-full max-w-6xl h-44 bg-gray-900 border-4 border-gray-700 rounded-lg overflow-hidden shadow-2xl">
-        <!-- The ticker line -->
-        <div id="ticker"></div>
-        
-        <!-- The track that holds all the items and moves -->
-        <div id="spinner-track">
-            <!-- Items will be dynamically generated by JavaScript -->
+        <!-- 2. CASE OPENING PAGE (The Spinner) -->
+        <div id="case-opening-page" class="page">
+            <h2 id="current-case-title" class="text-3xl font-bold mb-6 text-center text-blue-400">
+                Opening: Initial Case
+            </h2>
+
+            <div id="spinner-container" class="relative w-full h-44 bg-gray-900 border-4 border-gray-700 rounded-lg overflow-hidden shadow-2xl">
+                <div id="ticker"></div>
+                <div id="spinner-track"></div>
+            </div>
+
+            <div class="mt-8 flex justify-center space-x-4">
+                <button id="open-button" class="bg-blue-600 hover:bg-blue-700 text-white text-xl font-bold py-4 px-10 rounded-lg shadow-lg transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed">
+                    Open Case
+                </button>
+            </div>
         </div>
-    </div>
 
-    <!-- Controls -->
-    <div class="mt-8 flex space-x-4">
-        <button id="open-button" class="bg-blue-600 hover:bg-blue-700 text-white text-xl font-bold py-4 px-10 rounded-lg shadow-lg transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed">
-            Open Case
-        </button>
-    </div>
 
-    <!-- Inventory Section -->
-    <div id="inventory-section" class="w-full max-w-6xl mt-0 transition duration-500">
-        <h2 class="text-3xl font-bold text-center mb-6 pt-6 border-t border-gray-700">
-            Your Inventory
-        </h2>
-        <div id="inventory-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            <!-- Inventory items will be rendered here -->
+        <!-- 3. INVENTORY PAGE -->
+        <div id="inventory-page" class="page">
+            <h2 class="text-3xl font-bold text-center mb-6">
+                Your Inventory
+            </h2>
+            <div id="inventory-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-4 bg-gray-800 rounded-lg shadow-inner">
+                <!-- Inventory items will be rendered here -->
+            </div>
         </div>
-    </div>
+
+    </main>
 
 
-    <!-- 
-      This is the result modal, reused for both unbox and inventory stats. 
-    -->
-    <div id="result-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-        <!-- Modal Overlay -->
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
-        
-        <!-- Modal Content -->
-        <div class="relative z-10 bg-gray-800 w-full max-w-md rounded-xl shadow-xl border border-gray-700">
+    <!-- RESULT MODAL (Reusable) -->
+    <div id="result-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="relative z-10 bg-gray-800 w-full max-w-sm rounded-xl shadow-xl border border-gray-700">
             <h2 id="modal-header-title" class="text-3xl font-bold text-center p-6 bg-gray-700/50 rounded-t-xl">
                 Unboxed:
             </h2>
-            
-            <!-- Content where the item card will be injected -->
-            <div id="modal-content" class="p-8 flex flex-col items-center">
-                <!-- Won item will be generated by JS -->
-            </div>
+            <div id="modal-content" class="p-6 flex flex-col items-center"></div>
             
             <div class="p-6 bg-gray-700/50 rounded-b-xl text-center">
+                <!-- Button text changes based on context (Result vs. Inventory View) -->
                 <button id="close-modal-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition duration-200">
-                    Add to Inventory
+                    Close
                 </button>
             </div>
         </div>
@@ -187,7 +192,7 @@
 
 
     <script type="module">
-        // --- 1. CONFIGURATION ---
+        // --- 1. CONFIGURATION: MASTER CASE DATA ---
 
         // Map rarities to their colors for the card border
         const RARITY_COLORS = {
@@ -195,14 +200,14 @@
             'Classified': '#D32CE6',   // Pink
             'Restricted': '#8847FF',   // Purple
             'Mil-Spec': '#4E6AFF',     // Blue
-            'Rare Special': '#FFD700', // Gold
+            'Rare Special': '#FFD700', // Gold (Knives/Gloves)
         };
         
         // Base URL for reliable, simple image placeholders
         const PLACEHOLDER_BASE_URL = 'https://placehold.co/120x80/1f2937/FFFFFF?text=';
 
         /**
-         * EASILY EDITABLE ODDS CONFIGURATION
+         * EASILY EDITABLE ODDS CONFIGURATION (Applies to all cases)
          */
         const RARITY_WEIGHTS = [
             { rarity: 'Rare Special', cumulativeWeight: 0.0026 }, 
@@ -221,44 +226,71 @@
             'Rare Special': { min: 1000.00, max: 5000.00 },
         };
         
-        // The list of all possible items in the case (using reliable placeholders)
-        const CASE_ITEMS = [
-            // Rare Special (Knives) - Gold
-            { name: '★ Karambit | Vanilla', rarity: 'Rare Special', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbnMvYmFzZV93ZWFwb25zL3dlYXBvbl9rbmlmZV9rYXJhbWJpdC4zMTQzNTI0MzE3ODMwYjY2OGVkMTdkMTgzYzlhZmVhMDc2ZmNiMTNiLnBuZw--/auto/auto/85/notrim/6223c0d549d5910e00ab6df4a873fb6b.webp' },
-            { name: '★ Bayonet | Fade', rarity: 'Rare Special', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9iYXlvbmV0X2FhX2ZhZGVfbGlnaHQuNmMyYTNmNDc5NzVlMGRkNTAwODYyNTk2ZTRhNzI2ZTgzYTY0MTE1NS5wbmc-/auto/auto/85/notrim/c90ea76d2766bc3780e548310326f17d.webp' },
-            { name: '★ Gut Knife | Safari Mesh', rarity: 'Rare Special', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9rbmlmZV9ndXRfc3BfbWVzaF90YW5fbGlnaHQuYmZkOWVhMDY5OGIyNDY5YzE5NDgxMmY5NWIxMDMwMDU0OTc3NTFhNy5wbmc-/auto/auto/85/notrim/fa6c8b52b1dac3098017c79eb364e638.webp' },
-            
-            // Covert (Reds) - Red
-            { name: 'AWP | Lightning Strike', rarity: 'Covert', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hd3BfYW1fbGlnaHRuaW5nX2F3cF9saWdodC5lZjU0ODcxOTU5YjY1NjE0MWIyNDY5MTI1NmRiYjFkNTQ5YjFlZmJhLnBuZw--/auto/auto/85/notrim/12c1e08907cf2fb660228a4ad6b33c80.webp' },
+        /**
+         * MASTER CASE DEFINITION
+         */
+        const CASES = {
+            'CS:GO Weapon Case': {
+                description: 'This container was released on August 14th, 2013, alongside the "The Arms Deal" update.',
+                image: 'https://cdn.csgoskins.gg/public/uih/products/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbl9jYXNlcy9jcmF0ZV92YWx2ZV8xLjIzYzc4M2QwMDViNDQ2YTEwMDRjOTcwNTdjZmI1YWMyZDhkYWUxODYucG5n/auto/auto/85/notrim/5ca053d2ed1cab5e64ec19204f6e4157.webp', // Indigo
+                items: [
+                    // Rare Special
+                    { name: '★ Karambit | Vanilla', rarity: 'Rare Special', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbnMvYmFzZV93ZWFwb25zL3dlYXBvbl9rbmlmZV9rYXJhbWJpdC4zMTQzNTI0MzE3ODMwYjY2OGVkMTdkMTgzYzlhZmVhMDc2ZmNiMTNiLnBuZw--/auto/auto/85/notrim/6223c0d549d5910e00ab6df4a873fb6b.webp' },
+                    { name: '★ Bayonet | Fade', rarity: 'Rare Special', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9iYXlvbmV0X2FhX2ZhZGVfbGlnaHQuNmMyYTNmNDc5NzVlMGRkNTAwODYyNTk2ZTRhNzI2ZTgzYTY0MTE1NS5wbmc-/auto/auto/85/notrim/c90ea76d2766bc3780e548310326f17d.webp' },
+                    { name: '★ Gut Knife | Safari Mesh', rarity: 'Rare Special', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9rbmlmZV9ndXRfc3BfbWVzaF90YW5fbGlnaHQuYmZkOWVhMDY5OGIyNDY5YzE5NDgxMmY5NWIxMDMwMDU0OTc3NTFhNy5wbmc-/auto/auto/85/notrim/fa6c8b52b1dac3098017c79eb364e638.webp' },
+                    // Covert (Reds) - Red
+                    { name: 'AWP | Lightning Strike', rarity: 'Covert', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hd3BfYW1fbGlnaHRuaW5nX2F3cF9saWdodC5lZjU0ODcxOTU5YjY1NjE0MWIyNDY5MTI1NmRiYjFkNTQ5YjFlZmJhLnBuZw--/auto/auto/85/notrim/12c1e08907cf2fb660228a4ad6b33c80.webp' },
+                    // Classified (Pinks) - Pink
+                    { name: 'AK-47 | Case Hardened', rarity: 'Classified', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hazQ3X2FxX29pbGVkX2xpZ2h0LmNkMjQxYjIzZjRmYWMyNGQ0NTQyODExZDU1YjIzMTJiMDEzYWY5MTkucG5n/auto/auto/85/notrim/6cd121358f75fbc0574f6b80ffd79d28.webp' },
+                    { name: 'Desert Eagle | Hypnotic', rarity: 'Classified', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9kZWFnbGVfYWFfdmVydGlnb19saWdodC5kNTJmMjdmMDQyMGNkYTQ1ZDMzNTM1ZGExMDA0NjI1ZDU3YTlkYzE1LnBuZw--/auto/auto/85/notrim/86b526041421c2c809df880fc84b6746.webp' },
+                    // Restricted (Purples) - Purple
+                    { name: 'Glock-18 | Dragon Tattoo', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9nbG9ja19hbV9kcmFnb25fZ2xvY2tfbGlnaHQuMjM2YjU4MGVkZjkwMWVhODc5YTAyYjhlYzQzYWI5YzA5MDBhZmZkMy5wbmc-/auto/auto/85/notrim/709be5a02993a2ff20ca1101fe45aca2.webp' },
+                    { name: 'M4A1-S | Dark Water', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tNGExX3NpbGVuY2VyX2FtX3plYnJhX2RhcmtfbGlnaHQuNGMwNzFjYjE0ZWY3NjQ5Y2Q4YzI0MDVhN2QxODI4NGMxYTk1NTYzYi5wbmc-/auto/auto/85/notrim/16a6beda414c67834fd06f5b7de7d1ad.webp' },
+                    { name: 'USP-S | Dark Water', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl91c3Bfc2lsZW5jZXJfYW1femVicmFfZGFya19saWdodC5mYmRkMWJjMWViNmNmOWNmYzdkZTE5YWNmZjc2YjYwZWFjYWExYzhlLnBuZw--/auto/auto/85/notrim/60b0ac168a7199430c43412da21b83fa.webp' },
+                    // Mil-Spec (Blues) - Blue
+                    { name: 'MP7 | Skulls', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tcDdfaHlfc2t1bGxzX2xpZ2h0LjVjYmJkMDI5ZGYzZDY3NmZmZTM0N2E0N2JkODc1MjgxMjc3MDBmOTAucG5n/auto/auto/85/notrim/644b2b252cdf7c9d681965ee7553a1b1.webp' },
+                    { name: 'SG 553 | Ultravoilet', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9zZzU1Nl9zb19wdXJwbGVfbGlnaHQuYzMzODYyYzkxOGQ4NGZmNTAwNDE1NWU2MmQ4ODQ2ZDMxZTMzMDhhMS5wbmc-/auto/auto/85/notrim/adba0de5eda0e04f857c137bd4cb88f8.webp' },
+                    { name: 'AUG | Wings', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hdWdfaHlfZmVhdGhlcnNfYXVnX2xpZ2h0LjQyN2EzMzlkYTc1MzU0OWMwMzA2Mzk3ZTY3NmQ2YmRmZTAwMmI3MGMucG5n/auto/auto/85/notrim/1d8c1432c5efdbe1243ada47b0891fb0.webp' },
+                ],
+            },
+            'Operation Bravo Case': {
+                description: 'This container was released on September 19th, 2013, alongside the "Operation Bravo" update.',
+                image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbl9jYXNlcy9jcmF0ZV9vcGVyYXRpb25faWkuNWU1MTA0YTYyOTE3NDFjNTY5M2ExZTc4YmQ2ZWNjOTU2MGI1MWYwYS5wbmc-/auto/auto/85/notrim/e3493f6785b73327ce8cb43fe7b1f37f.webp', // Red
+                items: [
+                    // Rare Special
+                    { name: '★ M9 Bayonet | Vanilla', rarity: 'Rare Special', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbnMvYmFzZV93ZWFwb25zL3dlYXBvbl9rbmlmZV9tOV9iYXlvbmV0Ljg4M2NhNTlhN2NjZmE2MTYzOTYzYjYwYzY5Y2RkMzk0YzJiODdhNWUucG5n/auto/auto/85/notrim/312b5ccca278ebd5bff9d8c44ff2173d.webp' },
+                    { name: '★ M9 Bayonet | Fade', rarity: 'Rare Special', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9rbmlmZV9tOV9iYXlvbmV0X2FhX2ZhZGVfbGlnaHQuNTZlNDM2N2ZkZDRiZGRkMzRiNDIwZjRjOWU4ODhlNjA5NWEyZTM5NC5wbmc-/auto/auto/85/notrim/2c70c8c79659c238b94b85010bfc3723.webp' },
+                    { name: '★ Flip Knife | Scorched', rarity: 'Rare Special', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9rbmlmZV9mbGlwX3NwX2RhcHBsZV9saWdodC4wYzcwMzVhNDdjMjU4MDY4MDc0MWJhZDcwYzFhNTc4YTkzZDNlNzk2LnBuZw--/auto/auto/85/notrim/468e742b3d6764eb62bb5f9587f4f975.webp' },
+                    // Covert
+                    { name: 'Desert Eagle | Golden Koi', rarity: 'Covert', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9kZWFnbGVfYW1fc2NhbGVzX2JyYXZvX2xpZ2h0LjZkMGFiZWE5MTcwMTE2ZGYzYWU0MmJlMjIyMWM0NDY5ZDM4ZmYwMGQucG5n/auto/auto/85/notrim/94aca31109fa537231bd6614725f5dd4.webp' },
+                    { name: 'AK-47 | Fire Serpent', rarity: 'Covert', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hazQ3X2N1X2ZpcmVzZXJwZW50X2FrNDdfYnJhdm9fbGlnaHQuYzU3YTA4MmRlZjAyNjYyY2ZkYjEzYzU0M2UwZDUwZGZkM2Q2ZGE0ZC5wbmc-/auto/auto/85/notrim/816d04693ab5653bcc656e5bf0562227.webp' },
+                    // Classified
+                    { name: 'AWP | Graphite', rarity: 'Classified', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hd3BfYW1fY3J1bXBsZV9icmF2b19saWdodC5mNWVjYTJiNDJiNjBjNzQ0NWM0MmRkOWZmYjdjYjEwMzQ5MzlmNjVmLnBuZw--/auto/auto/85/notrim/215e5f3636c1531020654672b8153859.webp' },
+                    { name: 'P2000 | Ocean Foam', rarity: 'Classified', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9oa3AyMDAwX2FtX29zc2lmeV9ibHVlX3AyMDAwX2JyYXZvX2xpZ2h0LmE5NWM0YjVjZjY2NmEzZWZhNzVmMTlmZTIxOWI4M2ZjMzBkYzg0YjMucG5n/auto/auto/85/notrim/1f6592b8cdebd455dc09985f0a4d1416.webp' },
+                    { name: 'P90 | Emerald Dragon', rarity: 'Classified', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9wOTBfY3VfZHJhZ29uX3A5MF9icmF2b19saWdodC41MTk4YTc2NDc4M2M3OWNkYmMzMzljODA1NDViNjYyNTA4NTJlYzMyLnBuZw--/auto/auto/85/notrim/b025103b5b2d4d3dd6fdecf9e42d1dfc.webp' },
+                    // Restricted
+                    { name: 'M4A1-S | Bright Water', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tNGExX3NpbGVuY2VyX2h5X29jZWFuX2JyYXZvX2xpZ2h0LjBiMmE3NDMyNjE4YzhkOWFlYTlmN2MyY2YxMzc2YzhlMzczZmY4ZDQucG5n/auto/auto/85/notrim/e78c8f48f1351807369ace4998eb6c26.webp' },
+                    { name: 'USP-S | Overgrowth', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl91c3Bfc2lsZW5jZXJfaHlfc2llZ2VfYnJhdm9fbGlnaHQuMDY3OThmMGI4NTc1MjVhNWJjMzg4N2ExODRiYjJhNWYzMzJhNmM1Yi5wbmc-/auto/auto/85/notrim/071aa3e3450d8ecc6d845cb9a58474f6.webp' },
+                    { name: 'M4A4 | Zirka', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tNGExX3NwX3N0YXJfYnJhdm9fbGlnaHQuYjMyNzczOTA4NzU1OTZlNjllNzk5ZGY2ZTU0N2U1YTRmNTQ3ZTc3My5wbmc-/auto/auto/85/notrim/9d85a9dedecd44445ec8d01bbe73cd3f.webp' },
+                    { name: 'MAC-10 | Graven', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tYWMxMF9hcV9ldGNoZWRfbWFjMTBfYnJhdm9fbGlnaHQuNTA5Mzg2NjJkMTUzM2UzNGRlODk0Mjc5MjcwNmNkMTBlMzAyNTI4OC5wbmc-/auto/auto/85/notrim/12a0da54ac7f1bf15a126849415ee2a0.webp' },
+                    // Mil-Spec
+                    { name: 'Galil AR | Shattered', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9nYWxpbGFyX2h5X2NydW1wbGVfYnJhdm9fbGlnaHQuMjBmYWI1OWFmNjgwYmI2MjAzYjExMTM2NjRlZjA5MTM2MDg1OGEwNC5wbmc-/auto/auto/85/notrim/ad5084005f3c2b31082f2ef2ccbd224c.webp' },
+                    { name: 'Nova | Tempest', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9ub3ZhX2h5X3NlYXNpZGVfYnJhdm9fbGlnaHQuNjI1MWIwMDVlYTQ3NWUyMGNkODMyNmRhMTFiYjM0MTZlMzZlYTQ5YS5wbmc-/auto/auto/85/notrim/f9dc64a6822e0b8579af670629d3ab78.webp' },
+                    { name: 'UMP-45 | Bone Pile', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl91bXA0NV9zcF9za3VsbF9kaWFncmFtX2JyYXZvX2xpZ2h0LjUzZjk3N2MyN2I0ZjlkMWIxNWRhODgwOGQ4MGQ4ZDBmYTdiYmI1NjAucG5n/auto/auto/85/notrim/e3ab906cb57684aed3610df7696f1212.webp' },
+                    { name: 'SG 553 | Wave Spray', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9zZzU1Nl9zcF9zcHJheV93YXZlc19icmF2b19saWdodC4zMDFjMDg5ZTFhZmZjOTBiZmRjODZkN2Y5ZTEwM2U0OWZmYThlMmI1LnBuZw--/auto/auto/85/notrim/58862d24ee4454d5062be107b8aeb116.webp' },
+                    { name: 'Dual Berettas', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9lbGl0ZV9jdV9zZWFzb25fZWxpdGVzX2JyYXZvX2xpZ2h0Ljk5MmFhM2VkMDI2NjllZTZkNjJjMzc3ZTU5YmRmZmQ2OWI4ZjE1MGIucG5n/auto/auto/85/notrim/77c547e6567d2b45c4e9b2468a4702a8.webp' },
+                ],
+            },
+        };
 
-            // Classified (Pinks) - Pink
-            { name: 'AK-47 | Case Hardened', rarity: 'Classified', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hazQ3X2FxX29pbGVkX2xpZ2h0LmNkMjQxYjIzZjRmYWMyNGQ0NTQyODExZDU1YjIzMTJiMDEzYWY5MTkucG5n/auto/auto/85/notrim/6cd121358f75fbc0574f6b80ffd79d28.webp' },
-            { name: 'Desert Eagle | Hypnotic', rarity: 'Classified', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9kZWFnbGVfYWFfdmVydGlnb19saWdodC5kNTJmMjdmMDQyMGNkYTQ1ZDMzNTM1ZGExMDA0NjI1ZDU3YTlkYzE1LnBuZw--/auto/auto/85/notrim/86b526041421c2c809df880fc84b6746.webp' },
-            
-            // Restricted (Purples) - Purple
-            { name: 'Glock-18 | Dragon Tattoo', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9nbG9ja19hbV9kcmFnb25fZ2xvY2tfbGlnaHQuMjM2YjU4MGVkZjkwMWVhODc5YTAyYjhlYzQzYWI5YzA5MDBhZmZkMy5wbmc-/auto/auto/85/notrim/709be5a02993a2ff20ca1101fe45aca2.webp' },
-            { name: 'M4A1-S | Dark Water', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tNGExX3NpbGVuY2VyX2FtX3plYnJhX2RhcmtfbGlnaHQuNGMwNzFjYjE0ZWY3NjQ5Y2Q4YzI0MDVhN2QxODI4NGMxYTk1NTYzYi5wbmc-/auto/auto/85/notrim/16a6beda414c67834fd06f5b7de7d1ad.webp' },
-            { name: 'USP-S | Dark Water', rarity: 'Restricted', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl91c3Bfc2lsZW5jZXJfYW1femVicmFfZGFya19saWdodC5mYmRkMWJjMWViNmNmOWNmYzdkZTE5YWNmZjc2YjYwZWFjYWExYzhlLnBuZw--/auto/auto/85/notrim/60b0ac168a7199430c43412da21b83fa.webp' },
-
-            // Mil-Spec (Blues) - Blue
-            { name: 'MP7 | Skulls', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tcDdfaHlfc2t1bGxzX2xpZ2h0LjVjYmJkMDI5ZGYzZDY3NmZmZTM0N2E0N2JkODc1MjgxMjc3MDBmOTAucG5n/auto/auto/85/notrim/644b2b252cdf7c9d681965ee7553a1b1.webp' },
-            { name: 'SG 553 | Ultravoilet', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9zZzU1Nl9zb19wdXJwbGVfbGlnaHQuYzMzODYyYzkxOGQ4NGZmNTAwNDE1NWU2MmQ4ODQ2ZDMxZTMzMDhhMS5wbmc-/auto/auto/85/notrim/adba0de5eda0e04f857c137bd4cb88f8.webp' },
-            { name: 'AUG | Wings', rarity: 'Mil-Spec', image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hdWdfaHlfZmVhdGhlcnNfYXVnX2xpZ2h0LjQyN2EzMzlkYTc1MzU0OWMwMzA2Mzk3ZTY3NmQ2YmRmZTAwMmI3MGMucG5n/auto/auto/85/notrim/1d8c1432c5efdbe1243ada47b0891fb0.webp' },
-        ];
-        
         // The fixed width of a single item card in pixels
         const ITEM_WIDTH_PX = 160;
-
         // The number of items to show in the spinner reel
         const REEL_LENGTH = 100;
 
         // --- 2. STATE VARIABLES ---
         let inventory = [];
-        // Refactored: Global context for the modal button action
-        let modalContext = { 
-            action: 'close', // 'close' or 'save'
-            item: null       // The item object to save, if action is 'save'
-        };
+        let currentCaseId = null; // Stores the key of the case currently being opened
         
         // --- 3. DOM ELEMENTS ---
         const spinnerContainer = document.getElementById('spinner-container');
@@ -268,12 +300,82 @@
         const modalHeader = document.getElementById('modal-header-title');
         const modalContent = document.getElementById('modal-content');
         const closeModalButton = document.getElementById('close-modal-button');
-        const inventorySection = document.getElementById('inventory-section');
-        const inventoryToggleButton = document.getElementById('inventory-toggle-button');
         const inventoryGrid = document.getElementById('inventory-grid');
+        const currentCaseTitle = document.getElementById('current-case-title');
+        const caseGrid = document.getElementById('case-grid');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const pages = document.querySelectorAll('.page');
 
 
-        // --- 4. INVENTORY LOGIC (localStorage) ---
+        // --- 4. NAVIGATION LOGIC (SPA) ---
+        
+        /**
+         * Navigates between the main application pages.
+         * @param {string} pageId - The ID of the page to navigate to (e.g., 'case-selection-page').
+         */
+        function navigate(pageId) {
+            pages.forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('data-page') === pageId) {
+                    link.classList.add('active');
+                }
+            });
+            
+            // Re-render inventory when navigating to it
+            if (pageId === 'inventory-page') {
+                renderInventory();
+            }
+        }
+
+        /**
+         * Sets the current case and moves to the opening page.
+         * @param {string} caseId - The ID (key) of the case selected.
+         */
+        function selectCase(caseId) {
+            currentCaseId = caseId;
+            currentCaseTitle.textContent = `Opening: ${caseId}`;
+            
+            // Initialize spinner with a random item from the selected case
+            populateSpinner(pickRandomItem(caseId)); 
+            
+            navigate('case-opening-page');
+        }
+
+        /**
+         * Generates and displays the cards for all available cases.
+         */
+        function renderCaseSelectionPage() {
+            if (!caseGrid) return;
+            caseGrid.innerHTML = '';
+
+            Object.keys(CASES).forEach(caseId => {
+                const caseData = CASES[caseId];
+                const card = document.createElement('div');
+                
+                card.className = 'bg-gray-800 p-6 rounded-lg shadow-xl border-t-4 border-blue-600 transition duration-200 hover:scale-[1.02] cursor-pointer flex flex-col items-center text-center';
+                
+                // Add click listener to select this case
+                card.addEventListener('click', () => selectCase(caseId));
+
+                card.innerHTML = `
+                    <img src="${caseData.image}" alt="${caseId}" class="w-32 h-20 object-cover rounded-md mb-4 border border-gray-700">
+                    <h3 class="text-xl font-bold mb-2 text-gray-100">${caseId}</h3>
+                    <p class="text-sm text-gray-400 mb-4">${caseData.description}</p>
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg mt-auto w-full">
+                        Select Case
+                    </button>
+                `;
+                caseGrid.appendChild(card);
+            });
+        }
+
+
+        // --- 5. INVENTORY LOGIC (localStorage) ---
 
         /**
          * Renders the current in-memory inventory state to the DOM.
@@ -301,7 +403,7 @@
 
                 itemEl.innerHTML = `
                     <img src="${item.image}" alt="${item.name}" onerror="this.src='https://placehold.co/80x60/2d3748/FFF?text=Image+Error'">
-                    <p class="text-xs font-semibold mt-2 text-white text-center">${item.name}</p>
+                    <p class="text-xs font-semibold mt-2 text-white text-center truncate w-full px-1">${item.name}</p>
                     <p class="text-xs text-green-400 font-bold mt-1">$${item.value.toFixed(2)}</p>
                     <span class="absolute top-1 right-1 text-[10px] font-bold bg-gray-900/70 px-1 rounded-bl-lg">${wearAcronym}</span>
                 `;
@@ -330,31 +432,22 @@
          * @param {Object} item - The item object to save.
          */
         function saveItemToInventory(item) {
-            // Load existing inventory from local storage
             let currentInventory = JSON.parse(localStorage.getItem('cs2_inventory') || '[]');
             
-            // Add the new item
             currentInventory.push({ 
-                id: crypto.randomUUID(), // Assign a unique ID locally
+                id: crypto.randomUUID(), 
                 ...item 
             });
             
-            // Save back to local storage
             localStorage.setItem('cs2_inventory', JSON.stringify(currentInventory));
-            console.log("Item saved to local storage:", item.name);
             
-            // Update the in-memory state and re-render the inventory
             inventory = currentInventory;
-            renderInventory();
-            
-            // FIX: Open the inventory if it's closed to provide immediate visual feedback
-            if (!inventorySection.classList.contains('open')) {
-                toggleInventory();
-            }
+            // No need to re-render, as the user will likely still be on the case page. 
+            // The inventory is re-rendered when navigating to the inventory page.
         }
         
 
-        // --- 5. CORE SIMULATOR FUNCTIONS ---
+        // --- 6. CORE SIMULATOR FUNCTIONS ---
 
         /**
          * Generates a random float value (wear) and determines the wear category.
@@ -382,34 +475,39 @@
             const min = range.min;
             const max = range.max;
             
-            // Generate a random number within the defined range
             const value = (Math.random() * (max - min) + min).toFixed(2);
             return parseFloat(value);
         }
 
         /**
-         * Picks a random item from the CASE_ITEMS list using the defined rarity weights
-         * and generates its unique properties (Value, Float, Pattern ID).
+         * Picks a random item from the *selected* case's item pool.
+         * @param {string} caseId - The ID of the case to draw from.
          */
-        function pickRandomItem() {
-            const roll = Math.random(); // A random number between 0 (inclusive) and 1 (exclusive)
-            let winningRarity = 'Mil-Spec'; // Default to the commonest tier
+        function pickRandomItem(caseId) {
+            const itemPool = CASES[caseId]?.items || [];
+            if (itemPool.length === 0) {
+                console.error(`Case ID "${caseId}" has no items defined.`);
+                return null;
+            }
+
+            const roll = Math.random(); 
+            let winningRarity = 'Mil-Spec'; 
             
             // 1. Determine Rarity
             for (const weight of RARITY_WEIGHTS) {
-                if (roll <= weight.cumulativeWeight) { // Use <= for floating point comparison to favor the tier
+                if (roll <= weight.cumulativeWeight) { 
                     winningRarity = weight.rarity;
                     break;
                 }
             }
 
             // 2. Filter item pool
-            const potentialItems = CASE_ITEMS.filter(item => item.rarity === winningRarity);
+            const potentialItems = itemPool.filter(item => item.rarity === winningRarity);
             
             // 3. Select base item
             const baseItem = potentialItems[Math.floor(Math.random() * potentialItems.length)];
 
-            // 4. Generate unique properties (Float, Wear, Value, Pattern ID)
+            // 4. Generate unique properties
             const { float, wear } = generateFloatAndWear();
 
             // 5. Combine and return the fully generated item
@@ -418,7 +516,8 @@
                 value: generateItemValue(baseItem.rarity),
                 float: float,
                 wear: wear,
-                pattern_id: Math.floor(Math.random() * 1000) + 1, // Pattern IDs range from 1 to 1000
+                pattern_id: Math.floor(Math.random() * 1000) + 1, 
+                case: caseId, // Add the case name to the item data
             };
         }
 
@@ -427,6 +526,7 @@
          */
         function createItemElement(item, isLarge = false) {
             const div = document.createElement('div');
+            if (!item) return div; // Handle null item if case is empty
             
             const color = RARITY_COLORS[item.rarity];
             const imageUrl = item.image;
@@ -449,16 +549,16 @@
                     <h3 class="text-3xl font-bold mt-4 text-center">${item.name}</h3>
                     <p class="item-card-rarity text-xl" style="color: ${color};">${item.rarity}</p>
                     
-                    <!-- Item Properties -->
                     <div class="mt-4 text-left w-full p-4 bg-gray-700 rounded-lg">
                         <p class="text-lg font-bold">Value: <span class="text-green-400">$${item.value.toFixed(2)}</span></p>
                         <p class="text-sm pt-2">Condition: <span class="text-white font-semibold">${item.wear}</span></p>
                         <p class="text-sm">Float Value: <span class="text-gray-300">${item.float}</span></p>
                         <p class="text-sm">Pattern ID: <span class="text-gray-300">${item.pattern_id}</span></p>
+                        <p class="text-sm mt-2 font-semibold">Case: <span class="text-blue-300">${item.case}</span></p>
                     </div>
                 `;
             } else {
-                // Small card for the spinner track (No text on reel)
+                // Small card for the spinner track
                 div.className = 'item-card'; 
                 div.style.borderTop = `4px solid ${color}`;
                 div.innerHTML = `
@@ -470,15 +570,18 @@
         }
 
         /**
-         * Fills the spinner track with items.
+         * Fills the spinner track with items from the current case.
          */
         function populateSpinner(winningItem) {
+            if (!currentCaseId || !winningItem) return;
+
             spinnerTrack.innerHTML = ''; 
             
             const reelItems = [];
             for (let i = 0; i < REEL_LENGTH; i++) {
-                const randomItem = pickRandomItem();
-                reelItems.push(randomItem);
+                // Pick random items from the current case's pool
+                const randomItem = pickRandomItem(currentCaseId); 
+                if (randomItem) reelItems.push(randomItem);
             }
 
             // The winner is placed at a position that lands in the middle of the viewport
@@ -490,7 +593,7 @@
         }
 
         /**
-         * Hides the result modal (used when starting a new spin or closing the stats view).
+         * Hides the result modal.
          */
         function hideModal() {
             resultModal.classList.add('hidden');
@@ -501,19 +604,24 @@
          * The main function to start the spin animation.
          */
         function startSpin() {
-            if (openButton.disabled) return;
+            if (openButton.disabled || !currentCaseId) return;
             
             // 1. Disable button and hide modal
             openButton.disabled = true;
             hideModal(); 
 
-            // 2. Pick a winner (Generates all unique properties)
-            const winningItem = pickRandomItem();
+            // 2. Pick a winner (Generates all unique properties using the current case)
+            const winningItem = pickRandomItem(currentCaseId);
+            if (!winningItem) {
+                openButton.disabled = false;
+                console.error("Could not select winning item.");
+                return;
+            }
             
-            // 3. Populate the spinner 
+            // 3. Populate the spinner with the winner
             populateSpinner(winningItem);
 
-            // 4. Reset spinner position instantly (no transition)
+            // 4. Reset spinner position instantly 
             spinnerTrack.style.transition = 'none';
             spinnerTrack.style.transform = 'translateX(0)';
 
@@ -521,12 +629,10 @@
             const winningItemIndex = REEL_LENGTH - 6;
             const containerWidth = spinnerContainer.clientWidth;
             
-            // Position to land the *center* of the winning item on the ticker
             const targetPosition = (winningItemIndex * ITEM_WIDTH_PX) 
                                  + (ITEM_WIDTH_PX / 2) 
                                  - (containerWidth / 2);
 
-            // Add a small "jitter" so it doesn't land perfectly
             const jitter = (Math.random() - 0.5) * (ITEM_WIDTH_PX * 0.4);
             
             const finalTranslateX = -(targetPosition + jitter);
@@ -545,16 +651,18 @@
         }
 
         /**
-         * Shows the UNBOX RESULT modal and sets the context for saving.
+         * Shows the UNBOX RESULT modal.
          */
         function showResult(item) {
+            // AUTOMATICALLY ADD TO INVENTORY
+            saveItemToInventory(item);
+            
             modalHeader.textContent = 'Unboxed:';
             modalContent.innerHTML = ''; 
             modalContent.appendChild(createItemElement(item, true)); 
             
-            // Set context for saving
-            modalContext = { action: 'save', item: item };
-            closeModalButton.textContent = 'Add to Inventory';
+            // Update button text now that save is automatic
+            closeModalButton.textContent = 'Close';
 
             resultModal.classList.remove('hidden');
             resultModal.classList.add('visible');
@@ -562,15 +670,13 @@
         }
 
         /**
-         * Shows the INVENTORY STATS modal and sets the context for simple closing.
+         * Shows the INVENTORY STATS modal.
          */
         function showInventoryStatsModal(item) {
             modalHeader.textContent = 'Item Details:';
             modalContent.innerHTML = '';
             modalContent.appendChild(createItemElement(item, true));
 
-            // Set context for simple closing
-            modalContext = { action: 'close', item: null };
             closeModalButton.textContent = 'Close';
             
             resultModal.classList.remove('hidden');
@@ -578,46 +684,45 @@
         }
 
         /**
-         * Universal handler for the modal button click.
-         * Executes save or close based on modalContext.
+         * Universal handler for the modal button click (always hides the modal now).
          */
         function handleModalButtonAction() {
-            if (modalContext.action === 'save' && modalContext.item) {
-                saveItemToInventory(modalContext.item);
-            }
-            // Always hide the modal and reset context
+            // Only action is to close the modal now
             hideModal();
-            modalContext = { action: 'close', item: null };
         }
 
 
-        /**
-         * Toggles the visibility of the inventory section.
-         */
-        function toggleInventory() {
-            inventorySection.classList.toggle('open');
-            if (inventorySection.classList.contains('open')) {
-                inventoryToggleButton.textContent = 'Hide Inventory';
-            } else {
-                inventoryToggleButton.textContent = 'View Inventory';
-            }
-        }
-
-
-        // --- 6. EVENT LISTENERS & INITIALIZATION ---
+        // --- 7. EVENT LISTENERS & INITIALIZATION ---
         
         openButton.addEventListener('click', startSpin);
-        inventoryToggleButton.addEventListener('click', toggleInventory);
-        // CRITICAL FIX: Bind the single, permanent handler to the button
         closeModalButton.addEventListener('click', handleModalButtonAction); 
         
-        // Setup initialization only after the window is fully loaded
-        window.addEventListener('load', () => {
-            // Load saved inventory from local storage
-            loadInventory();
+        // Allow modal to be closed by clicking the backdrop/overlay
+        resultModal.addEventListener('click', (e) => {
+            if (e.target === resultModal) {
+                hideModal();
+            }
+        });
 
-            // Initial items for display before the first spin
-            populateSpinner(pickRandomItem());
+        // Navigation event listeners
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const pageId = e.currentTarget.getAttribute('data-page');
+                navigate(pageId);
+            });
+        });
+        
+        // Initial setup
+        window.addEventListener('load', () => {
+            loadInventory();
+            renderCaseSelectionPage();
+            // Start on the Case Selection Page
+            navigate('case-selection-page'); 
+
+            // Default the current case to the first one for immediate opening if user rushes
+            currentCaseId = Object.keys(CASES)[0];
+            currentCaseTitle.textContent = `Opening: ${currentCaseId}`;
+            populateSpinner(pickRandomItem(currentCaseId));
         });
 
     </script>
