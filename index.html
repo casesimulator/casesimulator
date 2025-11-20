@@ -213,6 +213,17 @@
             transform: translateX(0);
         }
 
+        /* Mission Card Styles */
+        .mission-card {
+            transition: transform 0.2s;
+        }
+        .mission-card:hover {
+            transform: translateY(-2px);
+        }
+        .mission-progress-bar {
+            transition: width 0.5s ease-out;
+        }
+
         /* Rank Badge Colors */
         .rank-silver { color: #d1d5db; text-shadow: 0 0 5px rgba(209, 213, 219, 0.3); }
         .rank-nova { color: #fcd34d; text-shadow: 0 0 5px rgba(252, 211, 77, 0.3); }
@@ -248,7 +259,13 @@
                 <span class="hidden md:inline">Trade Up</span>
             </button>
             
-            <!-- REMOVED EARN MONEY TAB HERE -->
+            <!-- MISSIONS TAB (NEW) -->
+            <button id="nav-missions" class="nav-link" data-page="missions-page">
+                <!-- Target Icon -->
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                <span class="hidden md:inline">Missions</span>
+                <span id="missions-badge" class="bg-red-500 text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-auto hidden">!</span>
+            </button>
             
             <button id="nav-inventory" class="nav-link" data-page="inventory-page">
                 <!-- Bag/Grid Icon -->
@@ -382,6 +399,28 @@
                 </div>
 
 
+                <!-- MISSIONS PAGE (NEW) -->
+                <div id="missions-page" class="page">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                        <div>
+                            <h2 class="text-3xl font-bold flex items-center gap-3">
+                                Daily Missions
+                                <span class="text-xs font-medium bg-yellow-600 text-white px-2 py-1 rounded-full uppercase tracking-wider">Reset 24h</span>
+                            </h2>
+                            <p class="text-gray-400 mt-1">Complete missions to earn bonus cash. Missions reset every 24 hours.</p>
+                        </div>
+                        <div class="bg-gray-800 px-4 py-2 rounded-lg border border-gray-700 text-right">
+                            <p class="text-xs text-gray-400 uppercase">Next Reset In</p>
+                            <p id="mission-timer" class="text-xl font-mono font-bold text-yellow-400">00:00:00</p>
+                        </div>
+                    </div>
+
+                    <div id="missions-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Missions injected by JS -->
+                    </div>
+                </div>
+
+
                 <!-- INVENTORY PAGE -->
                 <div id="inventory-page" class="page">
                     <div class="flex flex-col lg:flex-row justify-between items-end mb-4 border-b border-gray-700 pb-4 gap-4">
@@ -471,7 +510,7 @@
 
     <!-- NOTIFICATIONS & MODALS -->
 
-    <!-- General Notification Slider (Used for cooldowns and Level Ups) -->
+    <!-- General Notification Slider -->
     <div id="notification-slider" class="fixed bottom-8 right-8 bg-gray-800 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-4 border border-gray-600 z-50 max-w-sm">
         <div id="notif-icon" class="text-3xl">!</div>
         <div>
@@ -554,7 +593,6 @@
             { rarity: 'Mil-Spec', cumulativeWeight: 1.00 },     
         ];
 
-        // Fallback price ranges if individual item prices are missing
         const PRICE_RANGES = {
             'Mil-Spec': { min: 0.03, max: 0.50 }, 
             'Restricted': { min: 0.50, max: 5.00 },
@@ -686,6 +724,11 @@
         const xpText = document.getElementById('xp-text');
         const xpBar = document.getElementById('xp-bar');
 
+        // Missions Elements
+        const missionsGrid = document.getElementById('missions-grid');
+        const missionTimer = document.getElementById('mission-timer');
+        const missionsBadge = document.getElementById('missions-badge');
+
         // --- 3.1 AUDIO SETUP ---
         
         // UPDATED: Converted to raw.githubusercontent.com to fix CORS/Loading issues
@@ -738,51 +781,35 @@
                 audioCtx.resume();
             }
             
-            // speedFactor is roughly 0.0 (slow) to 1.0 (fast)
-            
             if (clickBuffer) {
                 const source = audioCtx.createBufferSource();
                 const gainNode = audioCtx.createGain();
                 
                 source.buffer = clickBuffer;
                 
-                // CONNECT: Source -> Gain -> Speakers
                 source.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
 
-                // --- DYNAMIC AUDIO PHYSICS ---
-                
-                // 1. PITCH: Very subtle shift (1.0 to 1.05)
-                // Keeps the sound character consistent while adding just a tiny bit of energy
                 source.playbackRate.value = 1.0 + (speedFactor * 0.05); 
 
-                // 2. VOLUME: More consistent (0.8 to 1.0)
-                // We only drop volume slightly now, so it doesn't sound "weak" when fast
                 const volume = Math.max(0.8, 1.0 - (speedFactor * 0.2));
                 gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
 
                 source.start(0);
                 
-                // 3. DURATION: Smoother Decay
-                // Fast: ~0.12s (More body than before)
-                // Slow: ~0.52s (Full decay)
                 const decayDuration = 0.12 + ((1.0 - speedFactor) * 0.4);
-
-                // Smoothly fade out
                 gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + decayDuration);
                 
-                // Cleanup
                 source.stop(audioCtx.currentTime + decayDuration + 0.02);
 
             } else {
-                // Fallback Synth (Mechanical Click)
+                // Fallback Synth
                 const osc = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
                 
                 osc.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
                 
-                // Reduced pitch scaling for synth too
                 const baseFreq = 150 + (speedFactor * 20);
                 
                 osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
@@ -833,20 +860,13 @@
         }
 
         // --- XP CALCULATIONS ---
-
-        // Formula: Harder to level up each level.
-        // Base gap starts at 500, increases by 250 each level.
-        // Lvl 0->1: 500 XP
-        // Lvl 1->2: 750 XP
-        // Lvl 2->3: 1000 XP
         function calculateXpForNextLevel(levelIndex) {
             return 500 + (levelIndex * 250);
         }
 
         function addXp(amount) {
-            // If already Global Elite (max index), just cap it or keep adding number
             if (currentLevelIndex >= RANKS.length - 1) {
-                currentXp += amount; // Keep adding for fun, but no level up
+                currentXp += amount; 
                 updateRankDisplay();
                 saveGameData();
                 return;
@@ -855,13 +875,11 @@
             currentXp += amount;
             let xpNeeded = calculateXpForNextLevel(currentLevelIndex);
 
-            // Handle multiple level ups at once (unlikely but safe)
             while (currentXp >= xpNeeded && currentLevelIndex < RANKS.length - 1) {
                 currentXp -= xpNeeded;
                 currentLevelIndex++;
                 xpNeeded = calculateXpForNextLevel(currentLevelIndex);
                 
-                // Trigger Level Up Notification
                 showNotification(
                     "Level Up!", 
                     `You reached ${RANKS[currentLevelIndex].name}!`, 
@@ -876,18 +894,14 @@
 
         function updateRankDisplay() {
             const currentRank = RANKS[currentLevelIndex];
-            const nextRank = RANKS[currentLevelIndex + 1]; // Can be undefined if max level
+            const nextRank = RANKS[currentLevelIndex + 1]; 
             
-            // Update Rank Name
             rankNameDisplay.textContent = currentRank.name;
             
-            // Update Color Class (remove all first, then add current)
             rankNameDisplay.classList.remove('rank-silver', 'rank-nova', 'rank-mg', 'rank-eagle', 'rank-supreme', 'rank-global');
             rankNameDisplay.classList.add(currentRank.colorClass);
 
-            // Update Progress Bar
             if (currentLevelIndex >= RANKS.length - 1) {
-                // Max Level
                 xpText.textContent = "MAX RANK";
                 xpBar.style.width = "100%";
                 xpBar.classList.remove('from-gray-500', 'to-gray-300');
@@ -920,6 +934,8 @@
                 renderInventory();
             } else if (pageId === 'tradeup-page') {
                 renderTradeUpPage();
+            } else if (pageId === 'missions-page') {
+                renderMissionsPage();
             }
         }
 
@@ -931,7 +947,7 @@
             openButtonText.textContent = `Open Case ($${casePrice.toFixed(2)})`;
             
             populateSpinner(pickRandomItem(caseId)); 
-            renderCaseContents(caseId); // Render the contents list
+            renderCaseContents(caseId); 
             navigate('case-opening-page');
         }
 
@@ -942,20 +958,16 @@
             const items = CASES[caseId]?.items || [];
             if (items.length === 0) return;
 
-            // Filter out specific Rare Special items for the display list
             const displayItems = items.filter(i => i.rarity !== 'Rare Special');
             const hasRareSpecial = items.some(i => i.rarity === 'Rare Special');
 
-            // Sort remaining items by rarity
             const sortedItems = [...displayItems].sort((a, b) => {
                 return RARITY_ORDER.indexOf(b.rarity) - RARITY_ORDER.indexOf(a.rarity);
             });
 
-            // Prepend the Generic Rare Special Item if the case has one
             if (hasRareSpecial) {
                 const color = RARITY_COLORS['Rare Special'];
                 const card = document.createElement('div');
-                // Updated for Dark Mode
                 card.className = 'bg-gray-800 p-3 rounded-lg border border-gray-700 flex flex-col items-center transition hover:bg-gray-750';
                 card.style.borderBottom = `3px solid ${color}`;
                 card.innerHTML = `
@@ -973,12 +985,10 @@
                 const minFloat = item.minFloat !== undefined ? item.minFloat : 0.00;
                 const maxFloat = item.maxFloat !== undefined ? item.maxFloat : 1.00;
                 
-                // Calculate bar positions (0 to 1 scale)
                 const leftPercent = minFloat * 100;
                 const widthPercent = (maxFloat - minFloat) * 100;
 
                 const card = document.createElement('div');
-                // Updated for Dark Mode
                 card.className = 'bg-gray-800 p-3 rounded-lg border border-gray-700 flex flex-col items-center transition hover:bg-gray-750';
                 card.style.borderBottom = `3px solid ${color}`;
 
@@ -986,20 +996,17 @@
                     <img src="${item.image}" class="w-24 h-16 object-contain mb-2" loading="lazy">
                     <p class="text-xs font-bold text-center truncate w-full mb-1" style="color: ${color}">${item.name}</p>
                     
-                    <!-- Float Cap Bar -->
                     <div class="w-full mt-2">
                         <div class="flex justify-between text-[9px] text-gray-500 font-mono mb-0.5 px-0.5">
                             <span>${minFloat.toFixed(2)}</span>
                             <span>${maxFloat.toFixed(2)}</span>
                         </div>
                         <div class="relative h-2 bg-gray-900 rounded-full w-full overflow-hidden border border-gray-600">
-                            <!-- Wear Markers (0.07, 0.15, 0.38, 0.45) -->
                             <div class="absolute top-0 bottom-0 w-px bg-gray-600 z-10" style="left: 7%"></div>
                             <div class="absolute top-0 bottom-0 w-px bg-gray-600 z-10" style="left: 15%"></div>
                             <div class="absolute top-0 bottom-0 w-px bg-gray-600 z-10" style="left: 38%"></div>
                             <div class="absolute top-0 bottom-0 w-px bg-gray-600 z-10" style="left: 45%"></div>
                             
-                            <!-- The Range Bar -->
                             <div class="absolute top-0 bottom-0 h-full" 
                                  style="left: ${leftPercent}%; width: ${widthPercent}%; background-color: ${color}; opacity: 0.6;">
                             </div>
@@ -1021,7 +1028,6 @@
                 const caseData = CASES[caseId];
                 const card = document.createElement('div');
                 
-                // Updated for Dark Mode
                 card.className = 'bg-gray-800 p-6 rounded-lg shadow-xl border-t-4 border-gray-500 transition duration-200 hover:scale-[1.02] cursor-pointer flex flex-col items-center text-center relative overflow-hidden group';
                 card.addEventListener('click', () => selectCase(caseId));
                 
@@ -1059,17 +1065,15 @@
                 return;
             }
             
-            // 1. Filter
             let displayItems = [...inventory];
             if (currentFilter !== 'all') {
                 displayItems = displayItems.filter(item => item.rarity === currentFilter);
             }
 
-            // 2. Sort
             displayItems.sort((a, b) => {
                 switch(currentSort) {
                     case 'newest':
-                        return 0; // Natural order is usually mostly chronological
+                        return 0; 
                     case 'value-desc':
                         return b.value - a.value;
                     case 'value-asc':
@@ -1110,7 +1114,6 @@
                     ? `<span class="absolute top-1 left-1 text-[10px] font-bold bg-orange-600/90 px-1 rounded text-white">ST™</span>` 
                     : '';
 
-                // Updated text colors for Dark Mode
                 itemEl.innerHTML = `
                     <img src="${item.image}" alt="${item.name}" onerror="this.src='https://placehold.co/80x60/2d3748/FFF?text=Image'">
                     ${stBadge}
@@ -1126,7 +1129,6 @@
             const storedInventory = localStorage.getItem('cs2_inventory');
             inventory = storedInventory ? JSON.parse(storedInventory) : [];
             
-            // Migration: Ensure all items have IDs
             let needsSave = false;
             inventory.forEach(item => {
                 if(!item.id) {
@@ -1210,7 +1212,6 @@
         // --- 7. TRADE UP LOGIC ---
         
         function renderTradeUpPage() {
-            // 1. Render Slots
             tradeUpSlotsContainer.innerHTML = '';
             let activeRarity = null;
             
@@ -1242,7 +1243,6 @@
                 tradeUpSlotsContainer.appendChild(slot);
             });
 
-            // 2. Render Inventory (Filtered)
             tradeUpInventoryGrid.innerHTML = '';
             
             const slotItemIds = filledSlots.map(i => i.id);
@@ -1272,7 +1272,6 @@
             tradeUpables.forEach(item => {
                 const color = RARITY_COLORS[item.rarity];
                 const itemEl = document.createElement('div');
-                // Updated for Dark Mode
                 itemEl.className = 'bg-gray-700 hover:bg-gray-600 p-2 rounded border-b-4 cursor-pointer transition-all flex flex-col items-center';
                 itemEl.style.borderColor = color;
                 
@@ -1382,6 +1381,8 @@
             tradeUpSlots = Array(10).fill(null);
             renderTradeUpPage();
             
+            updateMissionProgress('trade_ups', 1); // MISSION HOOK
+
             currentWinningItem = newItem; 
             showModal(newItem, 'unbox'); 
         }
@@ -1505,8 +1506,6 @@
             
             const color = RARITY_COLORS[item.rarity];
             
-            // Check for spinner render (isLarge=false) and if item is Rare Special
-            // If so, use the generic image.
             let imageUrl = item.image;
             if (!isLarge && item.rarity === 'Rare Special') {
                 imageUrl = RARE_ITEM_IMAGE;
@@ -1517,7 +1516,6 @@
             const placeholderUrl = `https://placehold.co/${placeholderTextSize}${placeholderName.replace(/ /g, '+')}`;
 
             if (isLarge) {
-                // This is for the MODAL/Result Reveal - Show the actual item here
                 div.className = 'flex flex-col items-center w-full';
                 
                 if (item.rarity === 'Rare Special') {
@@ -1533,7 +1531,6 @@
 
                 const xpValue = XP_REWARDS[item.rarity];
 
-                // Updated Text Colors for Modal (Dark Mode)
                 div.innerHTML = `
                     <img src="${imageUrl}" alt="${item.name}" class="w-full h-48 object-contain bg-gray-900 rounded-md mt-4 shadow-lg" 
                          onerror="this.src='${placeholderUrl.replace('120x80', '150x100')}'">
@@ -1555,14 +1552,8 @@
                     </div>
                 `;
             } else {
-                // This is for the SPINNER
                 div.className = 'item-card'; 
-                
-                // --- MODIFIED SECTION START ---
-                // All items (including Rare Special) now just get a bottom border.
-                // Previously Rare Special had a full outline.
                 div.style.borderBottom = `4px solid ${color}`;
-                // --- MODIFIED SECTION END ---
                 
                 div.innerHTML = `
                     <img src="${imageUrl}" alt="${item.name}" onerror="this.src='${placeholderUrl}'">
@@ -1595,6 +1586,9 @@
         function handleClicker() {
             if (isCooldownActive) return;
             updateBalance(0.25);
+            
+            updateMissionProgress('clicks', 1); // MISSION HOOK
+
             const now = Date.now();
             clickHistory.push(now);
         }
@@ -1668,7 +1662,6 @@
                 return;
             }
             
-            // Initialize/Resume Audio context on user interaction
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
@@ -1695,27 +1688,22 @@
             // --- AUDIO TRACKING LOGIC ---
             let lastTickIndex = -1;
             let animationId = null;
-            let lastPos = 0; // To calculate speed
+            let lastPos = 0; 
             
             const trackSound = () => {
                 const trackRect = spinnerTrack.getBoundingClientRect();
                 const tickerRect = document.getElementById('ticker').getBoundingClientRect();
                 const currentPos = trackRect.left;
                 
-                // 1. Calculate Speed (Pixels per frame)
-                // Typical max speed is around 60-80px per frame on start
                 const deltaX = Math.abs(currentPos - lastPos);
                 lastPos = currentPos;
 
-                // Normalize speed (0 to 1). Max realistic speed is ~50px/frame
                 const speedFactor = Math.min(deltaX / 50, 1.0); 
 
-                // 2. Calculate Index
                 const relativePos = tickerRect.left - trackRect.left;
                 const currentIndex = Math.floor((relativePos) / ITEM_WIDTH_PX);
                 
                 if (currentIndex > lastTickIndex && lastTickIndex !== -1) {
-                    // Play sound every time, but pass the speedFactor to modulate it
                     playClickSound(speedFactor);
                 }
                 
@@ -1725,25 +1713,23 @@
             };
 
             setTimeout(() => {
-                // Initialize position before starting animation loop
                 lastPos = spinnerTrack.getBoundingClientRect().left;
                 
                 spinnerTrack.style.transition = 'transform 6s cubic-bezier(0.1, 0.6, 0.1, 1)';
                 spinnerTrack.style.transform = `translateX(${finalTranslateX}px)`;
                 
-                // Start tracking sound
                 lastTickIndex = -1; 
                 animationId = requestAnimationFrame(trackSound);
                 
             }, 50); 
 
             setTimeout(() => {
-                // Stop tracking sound
                 if (animationId) cancelAnimationFrame(animationId);
                 
-                // Award XP!
                 const gainedXp = XP_REWARDS[winningItem.rarity];
                 addXp(gainedXp);
+
+                updateMissionProgress('open_cases', 1); // MISSION HOOK
 
                 showModal(winningItem, 'unbox');
                 openButton.disabled = false;
@@ -1778,7 +1764,7 @@
             `;
 
             if (type === 'unbox') {
-                playUnboxSound(); // Play sound when revealing new item
+                playUnboxSound(); 
                 modalHeader.textContent = 'New Item!';
                 modalCloseBtn.textContent = 'Collect Item';
                 modalSellBtn.onclick = () => sellItem(item, false);
@@ -1800,6 +1786,215 @@
             resultModal.classList.remove('visible');
             resultModal.dataset.type = ''; 
         }
+
+
+        // --- 13. MISSIONS SYSTEM (NEW) ---
+
+        let activeMissions = [];
+        let nextResetTime = 0;
+
+        // Available templates for missions
+        const MISSION_TYPES = [
+            { id: 'open_cases', text: 'Open {target} Cases', min: 10, max: 50, rewardMult: 15 }, // Reward is approx cost adjusted
+            { id: 'clicks', text: 'Click {target} Times', min: 100, max: 500, rewardMult: 0.5 },
+            { id: 'trade_ups', text: 'Perform {target} Trade Ups', min: 1, max: 3, rewardMult: 150 }
+        ];
+
+        function initMissions() {
+            const storedMissions = localStorage.getItem('cs2_missions');
+            const storedResetTime = localStorage.getItem('cs2_mission_reset');
+
+            const now = Date.now();
+
+            if (storedMissions && storedResetTime && now < parseInt(storedResetTime)) {
+                activeMissions = JSON.parse(storedMissions);
+                nextResetTime = parseInt(storedResetTime);
+            } else {
+                generateDailyMissions();
+            }
+
+            updateMissionsBadge();
+            renderMissionsPage();
+            startMissionTimer();
+        }
+
+        function generateDailyMissions() {
+            activeMissions = [];
+            const now = Date.now();
+            nextResetTime = now + (24 * 60 * 60 * 1000); // 24 hours from now
+            
+            // Generate 5 random missions
+            for(let i = 0; i < 5; i++) {
+                const type = MISSION_TYPES[Math.floor(Math.random() * MISSION_TYPES.length)];
+                
+                // Random target within range
+                let target = Math.floor(Math.random() * (type.max - type.min + 1)) + type.min;
+                
+                // Round target nicely (e.g. to nearest 5 or 10 for large numbers)
+                if (target > 20) target = Math.round(target / 5) * 5;
+                if (target > 100) target = Math.round(target / 10) * 10;
+
+                const reward = Math.round(target * type.rewardMult);
+
+                activeMissions.push({
+                    id: i,
+                    typeId: type.id,
+                    description: type.text.replace('{target}', target),
+                    target: target,
+                    progress: 0,
+                    reward: reward,
+                    claimed: false
+                });
+            }
+
+            saveMissions();
+        }
+
+        function saveMissions() {
+            localStorage.setItem('cs2_missions', JSON.stringify(activeMissions));
+            localStorage.setItem('cs2_mission_reset', nextResetTime.toString());
+        }
+
+        function updateMissionProgress(typeId, amount) {
+            let updated = false;
+            activeMissions.forEach(mission => {
+                if (mission.typeId === typeId && !mission.claimed && mission.progress < mission.target) {
+                    mission.progress += amount;
+                    if (mission.progress > mission.target) mission.progress = mission.target;
+                    updated = true;
+                    
+                    // If just completed, show notification
+                    if (mission.progress === mission.target) {
+                         showNotification("Mission Complete!", "Head to the Missions tab to claim your reward.", "!", "bg-green-600");
+                         updateMissionsBadge();
+                    }
+                }
+            });
+
+            if (updated) {
+                saveMissions();
+                // Only re-render if we are on the page to save performance
+                if (document.getElementById('missions-page').classList.contains('active')) {
+                    renderMissionsPage();
+                }
+            }
+        }
+
+        function claimMission(index) {
+            const mission = activeMissions[index];
+            if (mission.progress >= mission.target && !mission.claimed) {
+                mission.claimed = true;
+                updateBalance(mission.reward);
+                saveMissions();
+                renderMissionsPage();
+                updateMissionsBadge();
+                showNotification("Reward Claimed", `Added $${mission.reward} to balance.`, "$", "bg-green-600");
+            }
+        }
+
+        function updateMissionsBadge() {
+            const completable = activeMissions.filter(m => m.progress >= m.target && !m.claimed).length;
+            if (completable > 0) {
+                missionsBadge.classList.remove('hidden');
+                missionsBadge.textContent = completable;
+            } else {
+                missionsBadge.classList.add('hidden');
+            }
+        }
+
+        function renderMissionsPage() {
+            missionsGrid.innerHTML = '';
+            
+            activeMissions.forEach((mission, index) => {
+                const isComplete = mission.progress >= mission.target;
+                const percent = Math.min(100, (mission.progress / mission.target) * 100);
+                
+                const card = document.createElement('div');
+                card.className = `bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg relative overflow-hidden mission-card ${mission.claimed ? 'opacity-60' : ''}`;
+                
+                let buttonHtml = '';
+                if (mission.claimed) {
+                    buttonHtml = `
+                        <button disabled class="w-full bg-gray-700 text-gray-400 py-2 rounded font-bold cursor-default">
+                            Claimed
+                        </button>
+                    `;
+                } else if (isComplete) {
+                    buttonHtml = `
+                        <button onclick="window.claimMissionGlobal(${index})" class="w-full bg-green-600 hover:bg-green-500 text-white py-2 rounded font-bold shadow-lg animate-pulse">
+                            Claim $${mission.reward}
+                        </button>
+                    `;
+                } else {
+                    buttonHtml = `
+                        <button disabled class="w-full bg-gray-700 text-gray-500 py-2 rounded font-bold cursor-not-allowed">
+                            Claim $${mission.reward}
+                        </button>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4 relative z-10">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-100">${mission.description}</h3>
+                            <p class="text-sm text-gray-400 mt-1">Daily Task</p>
+                        </div>
+                        <div class="bg-gray-900 px-3 py-1 rounded border border-gray-700 text-yellow-400 font-bold text-sm">
+                            $${mission.reward}
+                        </div>
+                    </div>
+                    
+                    <div class="relative z-10 mb-6">
+                        <div class="flex justify-between text-xs text-gray-400 mb-2">
+                            <span>Progress</span>
+                            <span>${mission.progress} / ${mission.target}</span>
+                        </div>
+                        <div class="h-3 bg-gray-900 rounded-full overflow-hidden border border-gray-600">
+                            <div class="h-full ${isComplete ? 'bg-green-500' : 'bg-blue-500'} mission-progress-bar" style="width: ${percent}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="relative z-10">
+                        ${buttonHtml}
+                    </div>
+
+                    <!-- Background Icon for flavor -->
+                    <div class="absolute -bottom-6 -right-6 text-gray-700 opacity-20 pointer-events-none">
+                        <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path></svg>
+                    </div>
+                `;
+                missionsGrid.appendChild(card);
+            });
+        }
+
+        function startMissionTimer() {
+            setInterval(() => {
+                const now = Date.now();
+                const diff = nextResetTime - now;
+
+                if (diff <= 0) {
+                    // Time to reset!
+                    generateDailyMissions();
+                    updateMissionsBadge();
+                    if (document.getElementById('missions-page').classList.contains('active')) {
+                        renderMissionsPage();
+                    }
+                } else {
+                    // Format HH:MM:SS
+                    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+                    const seconds = Math.floor((diff / 1000) % 60);
+                    
+                    missionTimer.textContent = 
+                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+        }
+
+        // Expose claim function globally so HTML buttons can access it (since module scope is private)
+        window.claimMissionGlobal = (index) => {
+            claimMission(index);
+        };
 
 
         // --- 12. INITIALIZATION ---
@@ -1842,6 +2037,7 @@
         window.addEventListener('load', () => {
             loadGameData();
             loadInventory();
+            initMissions(); // Initialize Missions Logic
             renderCaseSelectionPage();
             navigate('case-selection-page'); 
             
