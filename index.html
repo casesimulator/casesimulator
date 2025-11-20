@@ -32,6 +32,7 @@
             justify-content: center;
             padding: 12px;
             box-sizing: border-box; 
+            /* Dark Mode Colors */
             background-color: #2d3748; /* bg-gray-800 */
             border-left: 1px solid #4a5568; /* border-gray-700 */
             border-right: 1px solid #4a5568; /* border-gray-700 */
@@ -41,7 +42,7 @@
         .item-card img {
             width: 120px;
             height: 80px;
-            object-fit: contain; /* Changed to contain for the rare item image */
+            object-fit: contain;
             border-radius: 4px;
         }
 
@@ -53,30 +54,36 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background-color: #1a202c; 
+            /* Dark Mode Colors */
+            background-color: #1a202c; /* gray-900 */
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
             padding: 8px;
             position: relative;
             cursor: pointer; 
             transition: transform 0.15s ease, opacity 0.15s ease;
-            /* Border is handled in JS now */
         }
         .item-card-inventory:hover {
             transform: scale(1.03);
             opacity: 0.95;
+            background-color: #2d3748; /* gray-800 */
         }
         .item-card-inventory img {
             width: 80px;
             height: 60px;
             object-fit: contain;
         }
+        
+        /* Text in cards default to white */
+        .item-card-inventory p {
+            color: #edf2f7; /* gray-100 */
+        }
 
         /* Trade Up Slot Styling */
         .tradeup-slot {
             aspect-ratio: 1;
-            background-color: #1a202c;
-            border: 2px dashed #4a5568;
+            background-color: #1a202c; /* gray-900 */
+            border: 2px dashed #4a5568; /* gray-700 */
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -87,12 +94,13 @@
             overflow: hidden;
         }
         .tradeup-slot:hover {
-            border-color: #4299e1;
+            border-color: #9ca3af; /* gray-400 */
             background-color: #2d3748;
         }
         .tradeup-slot.filled {
             border-style: solid;
             border-color: #4a5568;
+            background-color: #2d3748;
         }
         .tradeup-slot.filled:hover .remove-overlay {
             opacity: 1;
@@ -111,7 +119,7 @@
             font-size: 24px;
         }
 
-        /* The "ticker" that shows where the spinner will land */
+        /* The "ticker" */
         #ticker {
             position: absolute;
             top: 0;
@@ -119,7 +127,7 @@
             transform: translateX(-50%);
             width: 4px;
             height: 100%;
-            background: #fde047;
+            background: #fde047; /* yellow-300 */
             z-index: 10;
             box-shadow: 0 0 10px #000000;
         }
@@ -168,8 +176,8 @@
         }
         .nav-link.active {
             background-color: #1f2937; /* gray-800 (darker) */
-            color: #60a5fa; /* blue-400 */
-            box-shadow: inset 4px 0 0 0 #3b82f6; /* blue-500 accent border */
+            color: #f3f4f6; /* gray-100 */
+            box-shadow: inset 4px 0 0 0 #6b7280; /* gray-500 accent border */
         }
         .nav-link svg {
             width: 24px;
@@ -240,11 +248,7 @@
                 <span class="hidden md:inline">Trade Up</span>
             </button>
             
-            <button id="nav-clicker" class="nav-link" data-page="clicker-page">
-                <!-- Cursor/Hand Icon -->
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
-                <span class="hidden md:inline">Earn Money</span>
-            </button>
+            <!-- REMOVED EARN MONEY TAB HERE -->
             
             <button id="nav-inventory" class="nav-link" data-page="inventory-page">
                 <!-- Bag/Grid Icon -->
@@ -264,7 +268,7 @@
             </div>
             <!-- Progress Bar -->
             <div class="h-2 w-full bg-gray-900 rounded-full overflow-hidden shadow-inner border border-gray-600">
-                <div id="xp-bar" class="h-full bg-gradient-to-r from-blue-600 to-blue-400 w-0 transition-all duration-500 ease-out"></div>
+                <div id="xp-bar" class="h-full bg-gradient-to-r from-gray-500 to-gray-300 w-0 transition-all duration-500 ease-out"></div>
             </div>
         </div>
     </aside>
@@ -286,6 +290,13 @@
             <div class="bg-gray-800 px-4 md:px-6 py-2 rounded-full border border-gray-700 shadow-lg flex items-center gap-3 shrink-0">
                 <span class="text-gray-400 font-medium text-xs md:text-sm uppercase tracking-wider hidden sm:inline">Balance</span>
                 <span id="balance-display" class="text-green-500 font-bold text-lg md:text-xl font-mono">$1000.00</span>
+                
+                <!-- ADDED GREEN PLUS BUTTON -->
+                <button id="add-money-btn" class="bg-green-600 hover:bg-green-500 active:scale-95 text-white rounded-full w-6 h-6 flex items-center justify-center shadow transition-all ml-1" title="Earn Money">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                </button>
             </div>
         </header>
 
@@ -309,7 +320,7 @@
                         <button id="back-to-cases-btn" class="text-gray-400 hover:text-white flex items-center gap-2 transition bg-gray-800 px-4 py-2 rounded-lg">
                             &larr; Back
                         </button>
-                        <h2 id="current-case-title" class="text-xl md:text-3xl font-bold text-blue-400 text-center flex-1">
+                        <h2 id="current-case-title" class="text-xl md:text-3xl font-bold text-white text-center flex-1">
                             Opening Case
                         </h2>
                         <div class="w-20"></div> <!-- Spacer -->
@@ -321,7 +332,7 @@
                     </div>
 
                     <div class="flex flex-col items-center space-y-4">
-                        <button id="open-button" class="group relative bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-xl font-bold py-4 px-12 rounded-lg shadow-lg transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-700 overflow-hidden">
+                        <button id="open-button" class="group relative bg-gray-600 hover:bg-gray-500 active:bg-gray-700 text-white text-xl font-bold py-4 px-12 rounded-lg shadow-lg transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-700 overflow-hidden">
                             <span class="relative z-10" id="open-button-text">Open Case ($-.--)</span>
                             <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
                         </button>
@@ -382,14 +393,14 @@
                         </div>
                         
                         <div class="flex flex-col md:flex-row gap-2 w-full lg:w-auto">
-                            <select id="sort-select" class="bg-gray-700 text-white p-2 rounded text-sm border border-gray-600 outline-none focus:border-blue-500 min-w-[140px]">
+                            <select id="sort-select" class="bg-gray-700 text-white p-2 rounded text-sm border border-gray-600 outline-none focus:border-gray-400 min-w-[140px]">
                                 <option value="newest">Newest</option>
                                 <option value="value-desc" selected>High to Low</option>
                                 <option value="value-asc">Low to High</option>
                                 <option value="rarity">Rarity</option>
                             </select>
                             
-                            <select id="filter-select" class="bg-gray-700 text-white p-2 rounded text-sm border border-gray-600 outline-none focus:border-blue-500 min-w-[140px]">
+                            <select id="filter-select" class="bg-gray-700 text-white p-2 rounded text-sm border border-gray-600 outline-none focus:border-gray-400 min-w-[140px]">
                                 <option value="all">All Rarities</option>
                                 <option value="Mil-Spec">Mil-Spec (Blue)</option>
                                 <option value="Restricted">Restricted (Purple)</option>
@@ -433,7 +444,7 @@
                             <p class="text-gray-400">Click to earn <span class="text-green-500 font-bold">$0.25</span> per click.</p>
                             <div class="flex gap-4 justify-center text-sm font-mono mt-4">
                                 <div class="hidden bg-gray-800 px-3 py-1 rounded border border-gray-600">
-                                    CPS: <span id="cps-display" class="text-blue-400 font-bold">0</span>
+                                    CPS: <span id="cps-display" class="text-gray-400 font-bold">0</span>
                                 </div>
                                 <div id="warning-container" class="hidden bg-red-900/50 px-3 py-1 rounded border border-red-600/50 text-red-400 animate-pulse">
                                     Slow down!
@@ -590,6 +601,11 @@
                     { name: 'M4A4 | Zirka', rarity: 'Restricted', minPrice: 19.21, maxPrice: 77.55, minFloat: 0.06, maxFloat: 0.42, minPriceST: 28.72, maxPriceST: 134.43, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tNGExX3NwX3N0YXJfYnJhdm9fbGlnaHQuYjMyNzczOTA4NzU1OTZlNjllNzk5ZGY2ZTU0N2U1YTRmNTQ3ZTc3My5wbmc-/auto/auto/85/notrim/9d85a9dedecd44445ec8d01bbe73cd3f.webp' },
                     { name: 'MAC-10 | Graven', rarity: 'Restricted', minPrice: 20.76, maxPrice: 55.79, minFloat: 0.06, maxFloat: 0.80, minPriceST: 29.00, maxPriceST: 140.69, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tYWMxMF9hcV9ldGNoZWRfbWFjMTBfYnJhdm9fbGlnaHQuNTA5Mzg2NjJkMTUzM2UzNGRlODk0Mjc5MjcwNmNkMTBlMzAyNTI4OC5wbmc-/auto/auto/85/notrim/12a0da54ac7f1bf15a126849415ee2a0.webp' },
                     { name: 'Galil AR | Shattered', rarity: 'Mil-Spec', minPrice: 4.33, maxPrice: 28.50, minFloat: 0.06, maxFloat: 0.80, minPriceST: 4.71, maxPriceST: 99.99, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9nYWxpbGFyX2h5X2NydW1wbGVfYnJhdm9fbGlnaHQuMjBmYWI1OWFmNjgwYmI2MjAzYjExMTM2NjRlZjA5MTM2MDg1OGEwNC5wbmc-/auto/auto/85/notrim/ad5084005f3c2b31082f2ef2ccbd224c.webp' },
+                    { name: 'Nova | Tempest', rarity: 'Mil-Spec', minPrice: 4.84, maxPrice: 12.89, minFloat: 0.06, maxFloat: 0.22, minPriceST: 5.79, maxPriceST: 25.32, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9ub3ZhX2h5X3NlYXNpZGVfYnJhdm9fbGlnaHQuNjI1MWIwMDVlYTQ3NWUyMGNkODMyNmRhMTFiYjM0MTZlMzZlYTQ5YS5wbmc-/auto/auto/85/notrim/f9dc64a6822e0b8579af670629d3ab78.webp' },
+                    { name: 'UMP-45 | Bone Pile', rarity: 'Mil-Spec', minPrice: 4.55, maxPrice: 15.37, minFloat: 0.06, maxFloat: 0.30, minPriceST: 5.05, maxPriceST: 32.07, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl91bXA0NV9zcF9za3VsbF9kaWFncmFtX2JyYXZvX2xpZ2h0LjUzZjk3N2MyN2I0ZjlkMWIxNWRhODgwOGQ4MGQ4ZDBmYTdiYmI1NjAucG5n/auto/auto/85/notrim/e3ab906cb57684aed3610df7696f1212.webp' },
+                    { name: 'SG 553 | Wave Spray', rarity: 'Mil-Spec', minPrice: 3.86, maxPrice: 15.80, minFloat: 0.06, maxFloat: 0.80, minPriceST: 4.41, maxPriceST: 46.86, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9zZzU1Nl9zcF9zcHJheV93YXZlc19icmF2b19saWdodC4zMDFjMDg5ZTFhZmZjOTBiZmRjODZkN2Y5ZTEwM2U0OWZmYThlMmI1LnBuZw--/auto/auto/85/notrim/58862d24ee4454d5062be107b8aeb116.webp' },
+                    { name: 'Dual Berettas | Black Limba', rarity: 'Mil-Spec', minPrice: 4.46, maxPrice: 23.14, minFloat: 0.06, maxFloat: 0.80, minPriceST: 4.46, maxPriceST: 70.94, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9lbGl0ZV9jdV9zZWFzb25fZWxpdGVzX2JyYXZvX2xpZ2h0Ljk5MmFhM2VkMDI2NjllZTZkNjJjMzc3ZTU5YmRmZmQ2OWI4ZjE1MGIucG5n/auto/auto/85/notrim/77c547e6567d2b45c4e9b2468a4702a8.webp' },
+					{ name: 'G3SG1 | Demeter', rarity: 'Mil-Spec', minPrice: 4.46, maxPrice: 14.74, minFloat: 0.06, maxFloat: 0.80, minPriceST: 4.46, maxPriceST: 70.94, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9nM3NnMV9oeV9ibHVlcG9seWdvbl9icmF2b19saWdodC44NDQ5YmE5YWZjYjk3ZTYwY2U3ODZlMGI3MjlhZTJkZTdjZDQ3MTU5LnBuZw--/auto/auto/85/notrim/765a512322a754c77d5d8d02d1e442b4.png' },
                 ],
             },
         };
@@ -647,6 +663,7 @@
         const clickerBtn = document.getElementById('clicker-btn');
         const cpsDisplay = document.getElementById('cps-display');
         const warningContainer = document.getElementById('warning-container');
+        const addMoneyBtn = document.getElementById('add-money-btn');
         
         // Notification Slider (General purpose)
         const notificationSlider = document.getElementById('notification-slider');
@@ -873,7 +890,7 @@
                 // Max Level
                 xpText.textContent = "MAX RANK";
                 xpBar.style.width = "100%";
-                xpBar.classList.remove('from-blue-600', 'to-blue-400');
+                xpBar.classList.remove('from-gray-500', 'to-gray-300');
                 xpBar.classList.add('from-yellow-500', 'to-yellow-300');
             } else {
                 const xpNeeded = calculateXpForNextLevel(currentLevelIndex);
@@ -938,6 +955,7 @@
             if (hasRareSpecial) {
                 const color = RARITY_COLORS['Rare Special'];
                 const card = document.createElement('div');
+                // Updated for Dark Mode
                 card.className = 'bg-gray-800 p-3 rounded-lg border border-gray-700 flex flex-col items-center transition hover:bg-gray-750';
                 card.style.borderBottom = `3px solid ${color}`;
                 card.innerHTML = `
@@ -960,6 +978,7 @@
                 const widthPercent = (maxFloat - minFloat) * 100;
 
                 const card = document.createElement('div');
+                // Updated for Dark Mode
                 card.className = 'bg-gray-800 p-3 rounded-lg border border-gray-700 flex flex-col items-center transition hover:bg-gray-750';
                 card.style.borderBottom = `3px solid ${color}`;
 
@@ -1002,16 +1021,17 @@
                 const caseData = CASES[caseId];
                 const card = document.createElement('div');
                 
-                card.className = 'bg-gray-800 p-6 rounded-lg shadow-xl border-t-4 border-blue-600 transition duration-200 hover:scale-[1.02] cursor-pointer flex flex-col items-center text-center relative overflow-hidden group';
+                // Updated for Dark Mode
+                card.className = 'bg-gray-800 p-6 rounded-lg shadow-xl border-t-4 border-gray-500 transition duration-200 hover:scale-[1.02] cursor-pointer flex flex-col items-center text-center relative overflow-hidden group';
                 card.addEventListener('click', () => selectCase(caseId));
                 
                 card.innerHTML = `
                     <img src="${caseData.image}" alt="${caseId}" class="w-32 h-20 object-contain rounded-md mb-4 group-hover:rotate-3 transition-transform">
                     <h3 class="text-xl font-bold mb-2 text-gray-100">${caseId}</h3>
                     <p class="text-sm text-gray-400 mb-4">${caseData.description}</p>
-                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg mt-auto w-full transition-colors flex justify-center items-center gap-2">
+                    <button class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg mt-auto w-full transition-colors flex justify-center items-center gap-2">
                         <span>Open Case</span>
-                        <span class="bg-blue-800/50 px-2 py-0.5 rounded text-blue-100">$${caseData.price.toFixed(2)}</span>
+                        <span class="bg-gray-700/50 px-2 py-0.5 rounded text-gray-100">$${caseData.price.toFixed(2)}</span>
                     </button>
                 `;
                 caseGrid.appendChild(card);
@@ -1090,10 +1110,11 @@
                     ? `<span class="absolute top-1 left-1 text-[10px] font-bold bg-orange-600/90 px-1 rounded text-white">ST™</span>` 
                     : '';
 
+                // Updated text colors for Dark Mode
                 itemEl.innerHTML = `
                     <img src="${item.image}" alt="${item.name}" onerror="this.src='https://placehold.co/80x60/2d3748/FFF?text=Image'">
                     ${stBadge}
-                    <p class="text-xs font-semibold mt-2 text-white text-center truncate w-full px-1 group-hover:text-blue-300 transition-colors">${displayName}</p>
+                    <p class="text-xs font-semibold mt-2 text-white text-center truncate w-full px-1 group-hover:text-white transition-colors">${displayName}</p>
                     <p class="text-xs text-green-400 font-bold mt-1">$${item.value.toFixed(2)}</p>
                     <span class="absolute top-1 right-1 text-[10px] font-bold bg-gray-900/70 px-1 rounded-bl-lg text-gray-300">${wearAcronym}</span>
                 `;
@@ -1235,10 +1256,10 @@
             
             if (activeRarity) {
                 tradeUpFilterStatus.textContent = `(Showing ${activeRarity} items)`;
-                tradeUpFilterStatus.classList.add('text-blue-400');
+                tradeUpFilterStatus.classList.add('text-gray-300');
             } else {
                 tradeUpFilterStatus.textContent = `(Showing all tradeable items)`;
-                tradeUpFilterStatus.classList.remove('text-blue-400');
+                tradeUpFilterStatus.classList.remove('text-gray-300');
             }
 
             if (tradeUpables.length === 0) {
@@ -1251,6 +1272,7 @@
             tradeUpables.forEach(item => {
                 const color = RARITY_COLORS[item.rarity];
                 const itemEl = document.createElement('div');
+                // Updated for Dark Mode
                 itemEl.className = 'bg-gray-700 hover:bg-gray-600 p-2 rounded border-b-4 cursor-pointer transition-all flex flex-col items-center';
                 itemEl.style.borderColor = color;
                 
@@ -1511,10 +1533,11 @@
 
                 const xpValue = XP_REWARDS[item.rarity];
 
+                // Updated Text Colors for Modal (Dark Mode)
                 div.innerHTML = `
                     <img src="${imageUrl}" alt="${item.name}" class="w-full h-48 object-contain bg-gray-900 rounded-md mt-4 shadow-lg" 
                          onerror="this.src='${placeholderUrl.replace('120x80', '150x100')}'">
-                    <h3 class="text-2xl font-bold mt-4 text-center leading-tight">${item.name}</h3>
+                    <h3 class="text-2xl font-bold mt-4 text-center leading-tight text-white">${item.name}</h3>
                     <div class="flex items-center gap-2 mb-2">
                         ${stBadge}
                         <p class="item-card-rarity text-lg" style="color: ${color};">${item.rarity}</p>
@@ -1786,6 +1809,8 @@
         clickerBtn.addEventListener('click', handleClicker);
         signContractBtn.addEventListener('click', executeTradeUp);
         
+        addMoneyBtn.addEventListener('click', () => navigate('clicker-page'));
+
         sortSelect.addEventListener('change', (e) => {
             currentSort = e.target.value;
             renderInventory();
