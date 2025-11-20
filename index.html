@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Case Simulator & Clicker</title>
+    <title>Case Simulator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,7 +41,7 @@
         .item-card img {
             width: 120px;
             height: 80px;
-            object-fit: cover;
+            object-fit: contain; /* Changed to contain for the rare item image */
             border-radius: 4px;
         }
 
@@ -69,6 +69,7 @@
         .item-card-inventory img {
             width: 80px;
             height: 60px;
+            object-fit: contain;
         }
 
         /* Trade Up Slot Styling */
@@ -220,8 +221,8 @@
         <!-- Logo Area -->
         <div class="h-20 flex items-center px-6 border-b border-gray-700 bg-gray-800 hidden md:flex">
             <div>
-                <h1 class="text-2xl font-black text-gray-50 tracking-tight">CS2 Cases</h1>
-                <p class="text-xs font-medium text-gray-400">Realistic Odds & Value</p>
+                <h1 class="text-2xl font-black text-gray-50 tracking-tight">Case Simulator</h1>
+                <p class="text-xs font-medium text-gray-400">Accurate Odds & Value</p>
             </div>
         </div>
 
@@ -242,7 +243,7 @@
             <button id="nav-clicker" class="nav-link" data-page="clicker-page">
                 <!-- Cursor/Hand Icon -->
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
-                <span class="hidden md:inline">Earn</span>
+                <span class="hidden md:inline">Earn Money</span>
             </button>
             
             <button id="nav-inventory" class="nav-link" data-page="inventory-page">
@@ -326,6 +327,15 @@
                         </button>
                         <p id="balance-warning" class="text-red-500 font-semibold opacity-0 transition-opacity h-6">Insufficient Funds!</p>
                     </div>
+
+                    <!-- NEW SECTION: Case Contents -->
+                    <div id="case-contents-section" class="mt-12 border-t border-gray-700 pt-8">
+                        <h3 class="text-xl font-bold mb-6 text-gray-300">Case Contents</h3>
+                        <div id="case-contents-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                            <!-- Items injected by JS -->
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- TRADE UP PAGE -->
@@ -503,14 +513,16 @@
             { name: "Supreme Master First Class", id: "smfc", colorClass: "rank-supreme" },
             { name: "Global Elite", id: "ge", colorClass: "rank-global" }
         ];
+        
+        const RARE_ITEM_IMAGE = 'https://cdn.csgoskins.gg/public/uih/misc/aHR0cHM6Ly9jc2dvc2tpbnMuZ2cvYnVpbGQvYXNzZXRzL3JhcmUtaXRlbS10eEVaV1Q1Ry5wbmc-/auto/128/85/notrim/1fddea1e3843c479d1cba4efad55306b.webp';
 
         // XP Rewards based on unboxed item rarity
         const XP_REWARDS = {
-            'Mil-Spec': 2,
-            'Restricted': 5,
-            'Classified': 10,
-            'Covert': 25,
-            'Rare Special': 50
+            'Mil-Spec': 20,
+            'Restricted': 60,
+            'Classified': 150,
+            'Covert': 400,
+            'Rare Special': 2000
         };
 
         const RARITY_COLORS = {
@@ -578,11 +590,6 @@
                     { name: 'M4A4 | Zirka', rarity: 'Restricted', minPrice: 19.21, maxPrice: 77.55, minFloat: 0.06, maxFloat: 0.42, minPriceST: 28.72, maxPriceST: 134.43, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tNGExX3NwX3N0YXJfYnJhdm9fbGlnaHQuYjMyNzczOTA4NzU1OTZlNjllNzk5ZGY2ZTU0N2U1YTRmNTQ3ZTc3My5wbmc-/auto/auto/85/notrim/9d85a9dedecd44445ec8d01bbe73cd3f.webp' },
                     { name: 'MAC-10 | Graven', rarity: 'Restricted', minPrice: 20.76, maxPrice: 55.79, minFloat: 0.06, maxFloat: 0.80, minPriceST: 29.00, maxPriceST: 140.69, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9tYWMxMF9hcV9ldGNoZWRfbWFjMTBfYnJhdm9fbGlnaHQuNTA5Mzg2NjJkMTUzM2UzNGRlODk0Mjc5MjcwNmNkMTBlMzAyNTI4OC5wbmc-/auto/auto/85/notrim/12a0da54ac7f1bf15a126849415ee2a0.webp' },
                     { name: 'Galil AR | Shattered', rarity: 'Mil-Spec', minPrice: 4.33, maxPrice: 28.50, minFloat: 0.06, maxFloat: 0.80, minPriceST: 4.71, maxPriceST: 99.99, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9nYWxpbGFyX2h5X2NydW1wbGVfYnJhdm9fbGlnaHQuMjBmYWI1OWFmNjgwYmI2MjAzYjExMTM2NjRlZjA5MTM2MDg1OGEwNC5wbmc-/auto/auto/85/notrim/ad5084005f3c2b31082f2ef2ccbd224c.webp' },
-                    { name: 'Nova | Tempest', rarity: 'Mil-Spec', minPrice: 4.84, maxPrice: 12.89, minFloat: 0.06, maxFloat: 0.22, minPriceST: 5.79, maxPriceST: 25.32, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9ub3ZhX2h5X3NlYXNpZGVfYnJhdm9fbGlnaHQuNjI1MWIwMDVlYTQ3NWUyMGNkODMyNmRhMTFiYjM0MTZlMzZlYTQ5YS5wbmc-/auto/auto/85/notrim/f9dc64a6822e0b8579af670629d3ab78.webp' },
-                    { name: 'UMP-45 | Bone Pile', rarity: 'Mil-Spec', minPrice: 4.55, maxPrice: 15.37, minFloat: 0.06, maxFloat: 0.30, minPriceST: 5.05, maxPriceST: 32.07, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl91bXA0NV9zcF9za3VsbF9kaWFncmFtX2JyYXZvX2xpZ2h0LjUzZjk3N2MyN2I0ZjlkMWIxNWRhODgwOGQ4MGQ4ZDBmYTdiYmI1NjAucG5n/auto/auto/85/notrim/e3ab906cb57684aed3610df7696f1212.webp' },
-                    { name: 'SG 553 | Wave Spray', rarity: 'Mil-Spec', minPrice: 3.86, maxPrice: 15.80, minFloat: 0.06, maxFloat: 0.80, minPriceST: 4.41, maxPriceST: 46.86, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9zZzU1Nl9zcF9zcHJheV93YXZlc19icmF2b19saWdodC4zMDFjMDg5ZTFhZmZjOTBiZmRjODZkN2Y5ZTEwM2U0OWZmYThlMmI1LnBuZw--/auto/auto/85/notrim/58862d24ee4454d5062be107b8aeb116.webp' },
-                    { name: 'Dual Berettas | Black Limba', rarity: 'Mil-Spec', minPrice: 4.46, maxPrice: 23.14, minFloat: 0.06, maxFloat: 0.80, minPriceST: 4.46, maxPriceST: 70.94, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9lbGl0ZV9jdV9zZWFzb25fZWxpdGVzX2JyYXZvX2xpZ2h0Ljk5MmFhM2VkMDI2NjllZTZkNjJjMzc3ZTU5YmRmZmQ2OWI4ZjE1MGIucG5n/auto/auto/85/notrim/77c547e6567d2b45c4e9b2468a4702a8.webp' },
-					{ name: 'G3SG1 | Demeter', rarity: 'Mil-Spec', minPrice: 4.46, maxPrice: 14.74, minFloat: 0.06, maxFloat: 0.80, minPriceST: 4.46, maxPriceST: 70.94, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9nM3NnMV9oeV9ibHVlcG9seWdvbl9icmF2b19saWdodC44NDQ5YmE5YWZjYjk3ZTYwY2U3ODZlMGI3MjlhZTJkZTdjZDQ3MTU5LnBuZw--/auto/auto/85/notrim/765a512322a754c77d5d8d02d1e442b4.png' },
                 ],
             },
         };
@@ -653,6 +660,9 @@
         const signContractBtn = document.getElementById('sign-contract-btn');
         const contractError = document.getElementById('contract-error');
         const tradeUpFilterStatus = document.getElementById('tradeup-filter-status');
+
+        // Case Contents Elements
+        const caseContentsGrid = document.getElementById('case-contents-grid');
 
         // Rank Elements
         const rankNameDisplay = document.getElementById('rank-name');
@@ -793,7 +803,84 @@
             openButtonText.textContent = `Open Case ($${casePrice.toFixed(2)})`;
             
             populateSpinner(pickRandomItem(caseId)); 
+            renderCaseContents(caseId); // Render the contents list
             navigate('case-opening-page');
+        }
+
+        function renderCaseContents(caseId) {
+            if (!caseContentsGrid) return;
+            caseContentsGrid.innerHTML = '';
+
+            const items = CASES[caseId]?.items || [];
+            if (items.length === 0) return;
+
+            // Filter out specific Rare Special items for the display list
+            const displayItems = items.filter(i => i.rarity !== 'Rare Special');
+            const hasRareSpecial = items.some(i => i.rarity === 'Rare Special');
+
+            // Sort remaining items by rarity
+            const sortedItems = [...displayItems].sort((a, b) => {
+                return RARITY_ORDER.indexOf(b.rarity) - RARITY_ORDER.indexOf(a.rarity);
+            });
+
+            // Prepend the Generic Rare Special Item if the case has one
+            if (hasRareSpecial) {
+                const color = RARITY_COLORS['Rare Special'];
+                const card = document.createElement('div');
+                card.className = 'bg-gray-800 p-3 rounded-lg border border-gray-700 flex flex-col items-center transition hover:bg-gray-750';
+                card.style.borderBottom = `3px solid ${color}`;
+                card.innerHTML = `
+                    <img src="${RARE_ITEM_IMAGE}" class="w-24 h-16 object-contain mb-2">
+                    <p class="text-xs font-bold text-center truncate w-full mb-1" style="color: ${color}">Rare Special Item</p>
+                    <div class="w-full mt-2 text-[9px] text-gray-500 text-center">
+                        Exceedingly Rare
+                    </div>
+                `;
+                caseContentsGrid.appendChild(card);
+            }
+
+            sortedItems.forEach(item => {
+                const color = RARITY_COLORS[item.rarity];
+                const minFloat = item.minFloat !== undefined ? item.minFloat : 0.00;
+                const maxFloat = item.maxFloat !== undefined ? item.maxFloat : 1.00;
+                
+                // Calculate bar positions (0 to 1 scale)
+                const leftPercent = minFloat * 100;
+                const widthPercent = (maxFloat - minFloat) * 100;
+
+                const card = document.createElement('div');
+                card.className = 'bg-gray-800 p-3 rounded-lg border border-gray-700 flex flex-col items-center transition hover:bg-gray-750';
+                card.style.borderBottom = `3px solid ${color}`;
+
+                card.innerHTML = `
+                    <img src="${item.image}" class="w-24 h-16 object-contain mb-2" loading="lazy">
+                    <p class="text-xs font-bold text-center truncate w-full mb-1" style="color: ${color}">${item.name}</p>
+                    
+                    <!-- Float Cap Bar -->
+                    <div class="w-full mt-2">
+                        <div class="flex justify-between text-[9px] text-gray-500 font-mono mb-0.5 px-0.5">
+                            <span>${minFloat.toFixed(2)}</span>
+                            <span>${maxFloat.toFixed(2)}</span>
+                        </div>
+                        <div class="relative h-2 bg-gray-900 rounded-full w-full overflow-hidden border border-gray-600">
+                            <!-- Wear Markers (0.07, 0.15, 0.38, 0.45) -->
+                            <div class="absolute top-0 bottom-0 w-px bg-gray-600 z-10" style="left: 7%"></div>
+                            <div class="absolute top-0 bottom-0 w-px bg-gray-600 z-10" style="left: 15%"></div>
+                            <div class="absolute top-0 bottom-0 w-px bg-gray-600 z-10" style="left: 38%"></div>
+                            <div class="absolute top-0 bottom-0 w-px bg-gray-600 z-10" style="left: 45%"></div>
+                            
+                            <!-- The Range Bar -->
+                            <div class="absolute top-0 bottom-0 h-full" 
+                                 style="left: ${leftPercent}%; width: ${widthPercent}%; background-color: ${color}; opacity: 0.6;">
+                            </div>
+                        </div>
+                        <div class="flex justify-between text-[8px] text-gray-600 mt-0.5 px-0.5 select-none">
+                            <span>FN</span><span>MW</span><span>FT</span><span>WW</span><span>BS</span>
+                        </div>
+                    </div>
+                `;
+                caseContentsGrid.appendChild(card);
+            });
         }
 
         function renderCaseSelectionPage() {
@@ -837,7 +924,7 @@
             calculateInventoryValue();
 
             if (inventory.length === 0) {
-                inventoryGrid.innerHTML = '<p class="text-gray-400 text-center col-span-full py-12 text-lg flex flex-col items-center"><span class="text-4xl mb-2">🎒</span>Inventory Empty</p>';
+                inventoryGrid.innerHTML = '<p class="text-gray-400 text-center col-span-full py-12 text-lg flex flex-col items-center"><span class="text-4xl mb-2">!</span>Inventory Empty</p>';
                 return;
             }
             
@@ -1284,12 +1371,20 @@
             if (!item) return div;
             
             const color = RARITY_COLORS[item.rarity];
-            const imageUrl = item.image;
+            
+            // Check for spinner render (isLarge=false) and if item is Rare Special
+            // If so, use the generic image.
+            let imageUrl = item.image;
+            if (!isLarge && item.rarity === 'Rare Special') {
+                imageUrl = RARE_ITEM_IMAGE;
+            }
+
             const placeholderTextSize = isLarge ? '150x100/1f2937/FFFFFF?text=' : '120x80/2d3748/FFFFFF?text=';
             const placeholderName = item.name.split('|')[0].replace('StatTrak™', '').replace('★', '').trim();
             const placeholderUrl = `https://placehold.co/${placeholderTextSize}${placeholderName.replace(/ /g, '+')}`;
 
             if (isLarge) {
+                // This is for the MODAL/Result Reveal - Show the actual item here
                 div.className = 'flex flex-col items-center w-full';
                 
                 if (item.rarity === 'Rare Special') {
@@ -1326,12 +1421,15 @@
                     </div>
                 `;
             } else {
+                // This is for the SPINNER
                 div.className = 'item-card'; 
-                if (item.rarity === 'Rare Special') {
-                    div.style.border = `2px solid ${color}`;
-                } else {
-                    div.style.borderTop = `4px solid ${color}`;
-                }
+                
+                // --- MODIFIED SECTION START ---
+                // All items (including Rare Special) now just get a bottom border.
+                // Previously Rare Special had a full outline.
+                div.style.borderBottom = `4px solid ${color}`;
+                // --- MODIFIED SECTION END ---
+                
                 div.innerHTML = `
                     <img src="${imageUrl}" alt="${item.name}" onerror="this.src='${placeholderUrl}'">
                 `;
