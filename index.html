@@ -3,17 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Case Simulator</title>
-    <!-- 1. Load Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
-    <!-- 2. Load Inter font --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>Case Simulator & Clicker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
         /* 3. Custom CSS */
         body {
             font-family: 'Inter', sans-serif;
-            overflow-x: hidden; /* Prevents horizontal scrollbars */
-            min-height: 100vh;
         }
         
         /* The container for the spinner items */
@@ -62,6 +60,7 @@
             position: relative;
             cursor: pointer; 
             transition: transform 0.15s ease, opacity 0.15s ease;
+            /* Border is handled in JS now */
         }
         .item-card-inventory:hover {
             transform: scale(1.03);
@@ -70,6 +69,45 @@
         .item-card-inventory img {
             width: 80px;
             height: 60px;
+        }
+
+        /* Trade Up Slot Styling */
+        .tradeup-slot {
+            aspect-ratio: 1;
+            background-color: #1a202c;
+            border: 2px dashed #4a5568;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .tradeup-slot:hover {
+            border-color: #4299e1;
+            background-color: #2d3748;
+        }
+        .tradeup-slot.filled {
+            border-style: solid;
+            border-color: #4a5568;
+        }
+        .tradeup-slot.filled:hover .remove-overlay {
+            opacity: 1;
+        }
+        .remove-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(220, 38, 38, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
         }
 
         /* The "ticker" that shows where the spinner will land */
@@ -111,9 +149,30 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Sidebar Nav Link Styles */
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: #9ca3af; /* gray-400 */
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #374151; /* gray-700 */
+            color: white;
+        }
         .nav-link.active {
-            border-color: #3b82f6; /* blue-500 */
-            color: #3b82f6;
+            background-color: #1f2937; /* gray-800 (darker) */
+            color: #60a5fa; /* blue-400 */
+            box-shadow: inset 4px 0 0 0 #3b82f6; /* blue-500 accent border */
+        }
+        .nav-link svg {
+            width: 24px;
+            height: 24px;
         }
 
         /* Balance Pulse Animation */
@@ -126,6 +185,16 @@
             animation: balancePulse 0.4s ease-out;
         }
 
+        /* Level Up Pulse Animation */
+        @keyframes levelUpPulse {
+            0% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(250, 204, 21, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); }
+        }
+        .level-up-anim {
+            animation: levelUpPulse 1s infinite;
+        }
+
         /* Notification Slider */
         #notification-slider {
             transform: translateX(120%);
@@ -134,179 +203,263 @@
         #notification-slider.visible {
             transform: translateX(0);
         }
+
+        /* Rank Badge Colors */
+        .rank-silver { color: #d1d5db; text-shadow: 0 0 5px rgba(209, 213, 219, 0.3); }
+        .rank-nova { color: #fcd34d; text-shadow: 0 0 5px rgba(252, 211, 77, 0.3); }
+        .rank-mg { color: #60a5fa; text-shadow: 0 0 5px rgba(96, 165, 250, 0.3); }
+        .rank-eagle { color: #9ca3af; text-shadow: 0 0 5px rgba(156, 163, 175, 0.5); } /* Darker silver */
+        .rank-supreme { color: #f472b6; text-shadow: 0 0 5px rgba(244, 114, 182, 0.3); }
+        .rank-global { color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
     </style>
 </head>
-<body class="bg-gray-900 text-white flex flex-col items-center p-4">
+<body class="bg-gray-900 text-white flex h-screen w-full overflow-hidden">
 
-    <!-- Global Navigation -->
-    <div class="w-full max-w-6xl mb-8 border-b border-gray-700">
-        <header class="flex flex-col md:flex-row justify-between items-center py-4 gap-4">
-            <div class="flex items-center gap-6">
-                <h1 class="text-3xl md:text-4xl font-black tracking-tighter text-gray-50">
-                    Case Simulator
-                </h1>
-                <nav class="flex gap-4">
-                    <button id="nav-cases" class="nav-link px-2 md:px-4 py-2 text-lg font-semibold text-gray-400 border-b-2 border-transparent hover:text-blue-400 transition active" data-page="case-selection-page">
-                        Cases
-                    </button>
-                    <button id="nav-clicker" class="nav-link px-2 md:px-4 py-2 text-lg font-semibold text-gray-400 border-b-2 border-transparent hover:text-blue-400 transition" data-page="clicker-page">
-                        Earn
-                    </button>
-                    <button id="nav-inventory" class="nav-link px-2 md:px-4 py-2 text-lg font-semibold text-gray-400 border-b-2 border-transparent hover:text-blue-400 transition" data-page="inventory-page">
-                        Inventory
-                    </button>
-                </nav>
+    <!-- Sidebar Navigation -->
+    <aside class="flex flex-col w-full md:w-64 bg-gray-800 border-r border-gray-700 shrink-0 h-auto md:h-full transition-all z-20 absolute md:relative bottom-0 md:bottom-auto top-[calc(100%-60px)] md:top-0">
+        <!-- Logo Area -->
+        <div class="h-20 flex items-center px-6 border-b border-gray-700 bg-gray-800 hidden md:flex">
+            <div>
+                <h1 class="text-2xl font-black text-gray-50 tracking-tight">CS2 Cases</h1>
+                <p class="text-xs font-medium text-gray-400">Realistic Odds & Value</p>
+            </div>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-800 flex flex-row md:flex-col justify-around md:justify-start border-t md:border-t-0 border-gray-700">
+            <button id="nav-cases" class="nav-link active" data-page="case-selection-page">
+                <!-- Box Icon -->
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                <span class="hidden md:inline">Cases</span>
+            </button>
+            
+            <button id="nav-tradeup" class="nav-link" data-page="tradeup-page">
+                <!-- Up Arrow/Chart Icon -->
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                <span class="hidden md:inline">Trade Up</span>
+            </button>
+            
+            <button id="nav-clicker" class="nav-link" data-page="clicker-page">
+                <!-- Cursor/Hand Icon -->
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                <span class="hidden md:inline">Earn</span>
+            </button>
+            
+            <button id="nav-inventory" class="nav-link" data-page="inventory-page">
+                <!-- Bag/Grid Icon -->
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                <span class="hidden md:inline">Inventory</span>
+            </button>
+        </nav>
+
+        <!-- RANK & LEVEL DISPLAY (Sidebar Bottom) -->
+        <div class="hidden md:flex flex-col p-5 border-t border-gray-700 bg-gray-800/50 gap-3">
+            <div class="flex items-center gap-3">
+                <!-- Text Info -->
+                <div class="flex flex-col w-full overflow-hidden">
+                    <span id="rank-name" class="text-sm font-bold text-gray-200 uppercase tracking-wide truncate">Silver I</span>
+                    <span id="xp-text" class="text-[10px] font-mono text-gray-400">0 / 500 XP</span>
+                </div>
+            </div>
+            <!-- Progress Bar -->
+            <div class="h-2 w-full bg-gray-900 rounded-full overflow-hidden shadow-inner border border-gray-600">
+                <div id="xp-bar" class="h-full bg-gradient-to-r from-blue-600 to-blue-400 w-0 transition-all duration-500 ease-out"></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="flex-1 flex flex-col min-w-0 relative h-full">
+        
+        <!-- Top Header (Balance & Mobile Title) -->
+        <header class="h-20 bg-gray-900/95 backdrop-blur border-b border-gray-700 flex items-center justify-between px-4 md:px-8 shrink-0 z-10 gap-4">
+            
+            <div class="flex flex-col justify-center md:hidden">
+                <h2 class="text-lg font-bold text-gray-100 leading-none">CS2 Cases</h2>
             </div>
             
+            <!-- Spacer for Desktop alignment -->
+            <div class="flex-1 hidden md:block"></div>
+
             <!-- Balance Display -->
-            <div class="bg-gray-800 px-6 py-2 rounded-full border border-gray-700 shadow-lg flex items-center gap-2">
-                <span class="text-gray-400 font-medium text-sm uppercase tracking-wider">Balance</span>
-                <span id="balance-display" class="text-green-500 font-bold text-xl font-mono">$1000.00</span>
+            <div class="bg-gray-800 px-4 md:px-6 py-2 rounded-full border border-gray-700 shadow-lg flex items-center gap-3 shrink-0">
+                <span class="text-gray-400 font-medium text-xs md:text-sm uppercase tracking-wider hidden sm:inline">Balance</span>
+                <span id="balance-display" class="text-green-500 font-bold text-lg md:text-xl font-mono">$1000.00</span>
             </div>
         </header>
+
+        <!-- Scrollable Page Content -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth pb-24 md:pb-8">
+            <div class="w-full max-w-7xl mx-auto">
+
+                <!-- CASE SELECTION PAGE -->
+                <div id="case-selection-page" class="page active">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl md:text-3xl font-bold">Cases</h2>
+                    </div>
+                    <div id="case-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        <!-- Cases injected here -->
+                    </div>
+                </div>
+
+                <!-- CASE OPENING PAGE -->
+                <div id="case-opening-page" class="page">
+                    <div class="flex justify-between items-center mb-6">
+                        <button id="back-to-cases-btn" class="text-gray-400 hover:text-white flex items-center gap-2 transition bg-gray-800 px-4 py-2 rounded-lg">
+                            &larr; Back
+                        </button>
+                        <h2 id="current-case-title" class="text-xl md:text-3xl font-bold text-blue-400 text-center flex-1">
+                            Opening Case
+                        </h2>
+                        <div class="w-20"></div> <!-- Spacer -->
+                    </div>
+
+                    <div id="spinner-container" class="relative w-full h-44 bg-gray-900 border-4 border-gray-700 rounded-lg overflow-hidden shadow-2xl mb-8">
+                        <div id="ticker"></div>
+                        <div id="spinner-track"></div>
+                    </div>
+
+                    <div class="flex flex-col items-center space-y-4">
+                        <button id="open-button" class="group relative bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-xl font-bold py-4 px-12 rounded-lg shadow-lg transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-700 overflow-hidden">
+                            <span class="relative z-10" id="open-button-text">Open Case ($2.50)</span>
+                            <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                        </button>
+                        <p id="balance-warning" class="text-red-500 font-semibold opacity-0 transition-opacity h-6">Insufficient Funds!</p>
+                    </div>
+                </div>
+
+                <!-- TRADE UP PAGE -->
+                <div id="tradeup-page" class="page">
+                    <div class="flex flex-col items-center mb-8">
+                        <h2 class="text-3xl font-bold mb-2">Trade Up Contract</h2>
+                        <p class="text-gray-400 mb-6 text-center max-w-2xl">Select 10 items of the same rarity to trade up for one item of the next higher tier.</p>
+                        
+                        <!-- Contract Slots -->
+                        <div class="relative bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-2xl w-full max-w-3xl">
+                            <div id="tradeup-slots" class="grid grid-cols-5 gap-4 mb-6">
+                                <!-- 10 Slots injected by JS -->
+                            </div>
+                            
+                            <div class="flex flex-col items-center">
+                                <button id="sign-contract-btn" class="bg-yellow-600 hover:bg-yellow-500 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed text-white text-lg font-bold py-3 px-12 rounded-lg shadow-lg transition-all transform active:scale-95">
+                                    Sign Contract
+                                </button>
+                                <p id="contract-error" class="text-red-400 text-sm mt-2 opacity-0 transition-opacity h-5">Need 10 items of same rarity!</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-700 pt-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold text-gray-300">Your Inventory <span id="tradeup-filter-status" class="text-sm font-normal text-gray-500 ml-2">(Showing all tradeable items)</span></h3>
+                        </div>
+                        <!-- Filtered Inventory Grid -->
+                        <div id="tradeup-inventory-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 p-4 bg-gray-800/50 rounded-lg min-h-[200px]">
+                            <!-- Items injected by JS -->
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- INVENTORY PAGE -->
+                <div id="inventory-page" class="page">
+                    <div class="flex flex-col lg:flex-row justify-between items-end mb-4 border-b border-gray-700 pb-4 gap-4">
+                        <div class="w-full lg:w-auto">
+                            <h2 class="text-3xl font-bold">Your Inventory</h2>
+                            <div class="text-gray-400 text-sm mt-1">
+                                Total Value: <span id="inventory-total-value" class="text-green-400 font-bold">$0.00</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col md:flex-row gap-2 w-full lg:w-auto">
+                            <select id="sort-select" class="bg-gray-700 text-white p-2 rounded text-sm border border-gray-600 outline-none focus:border-blue-500 min-w-[140px]">
+                                <option value="newest">Newest</option>
+                                <option value="value-desc" selected>High to Low</option>
+                                <option value="value-asc">Low to High</option>
+                                <option value="rarity">Rarity</option>
+                            </select>
+                            
+                            <select id="filter-select" class="bg-gray-700 text-white p-2 rounded text-sm border border-gray-600 outline-none focus:border-blue-500 min-w-[140px]">
+                                <option value="all">All Rarities</option>
+                                <option value="Mil-Spec">Mil-Spec (Blue)</option>
+                                <option value="Restricted">Restricted (Purple)</option>
+                                <option value="Classified">Classified (Pink)</option>
+                                <option value="Covert">Covert (Red)</option>
+                                <option value="Rare Special">Rare Special (Gold)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-800 p-3 rounded-lg mb-4 flex flex-col sm:flex-row items-center justify-between border border-gray-700 gap-3">
+                        <div class="flex items-center gap-2 text-gray-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            <span class="text-sm font-bold uppercase tracking-wider">Bulk Sell</span>
+                        </div>
+                        <div class="flex gap-2 w-full sm:w-auto">
+                            <select id="bulk-rarity-select" class="bg-gray-900 text-white p-2 rounded text-sm border border-gray-600 outline-none focus:border-red-500 flex-grow">
+                                <option value="" disabled selected>Select Rarity...</option>
+                                <option value="Mil-Spec">Sell all Mil-Spec</option>
+                                <option value="Restricted">Sell all Restricted</option>
+                                <option value="Classified">Sell all Classified</option>
+                                <option value="Covert">Sell all Covert</option>
+                            </select>
+                            <button id="bulk-sell-btn" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded text-sm font-bold transition whitespace-nowrap shadow-lg">
+                                Sell
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="inventory-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 p-4 bg-gray-800 rounded-lg shadow-inner min-h-[300px]">
+                        <!-- Items injected here -->
+                    </div>
+                </div>
+
+                <!-- CLICKER PAGE -->
+                <div id="clicker-page" class="page">
+                    <div class="flex flex-col items-center justify-start min-h-[500px] text-center space-y-8 pt-12">
+                        
+                        <div class="space-y-2">
+                            <h2 class="text-4xl font-bold text-green-400">Earn Money</h2>
+                            <p class="text-gray-400">Click to earn <span class="text-green-500 font-bold">$0.25</span> per click.</p>
+                            <div class="flex gap-4 justify-center text-sm font-mono mt-4">
+                                <div class="hidden bg-gray-800 px-3 py-1 rounded border border-gray-600">
+                                    CPS: <span id="cps-display" class="text-blue-400 font-bold">0</span>
+                                </div>
+                                <div id="warning-container" class="hidden bg-red-900/50 px-3 py-1 rounded border border-red-600/50 text-red-400 animate-pulse">
+                                    Slow down!
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="clicker-btn" class="group relative bg-green-600 hover:bg-green-500 active:bg-green-700 text-white text-xl font-bold py-6 px-20 rounded-lg shadow-lg transition-all duration-100 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-700 overflow-hidden active:scale-95 transform">
+                            <span class="relative z-10 flex flex-col items-center">
+                                <span class="text-green-200 font-mono mt-1">+$0.25</span>
+                            </span>
+                            <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                        </button>
+
+                        <p class="text-xs text-gray-500 max-w-md">
+                            Having more than 20 CPS for 3 seconds will result in a temporary cooldown.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </main>
     </div>
 
-    <!-- MAIN PAGE CONTAINER -->
-    <main class="w-full max-w-6xl relative">
+    <!-- NOTIFICATIONS & MODALS -->
 
-        <!-- 1. CASE SELECTION PAGE -->
-        <div id="case-selection-page" class="page active">
-            <h2 class="text-3xl font-bold mb-6 text-center">Select a Case to Open</h2>
-            <div id="case-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Case cards will be generated here -->
-            </div>
+    <!-- General Notification Slider (Used for cooldowns and Level Ups) -->
+    <div id="notification-slider" class="fixed bottom-8 right-8 bg-gray-800 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-4 border border-gray-600 z-50 max-w-sm">
+        <div id="notif-icon" class="text-3xl">!</div>
+        <div>
+            <h4 id="notif-title" class="font-bold text-lg">Notification</h4>
+            <p id="notif-body" class="text-sm text-gray-300">Message body.</p>
         </div>
+    </div>
 
-        <!-- 2. CASE OPENING PAGE (The Spinner) -->
-        <div id="case-opening-page" class="page">
-            <div class="flex justify-between items-center mb-6">
-                <button id="back-to-cases-btn" class="text-gray-400 hover:text-white flex items-center gap-2 transition">
-                    &larr; Back to Cases
-                </button>
-                <h2 id="current-case-title" class="text-2xl md:text-3xl font-bold text-blue-400 text-center flex-1">
-                    Opening Case
-                </h2>
-                <div class="w-24"></div> <!-- Spacer for centering -->
-            </div>
-
-            <div id="spinner-container" class="relative w-full h-44 bg-gray-900 border-4 border-gray-700 rounded-lg overflow-hidden shadow-2xl">
-                <div id="ticker"></div>
-                <div id="spinner-track"></div>
-            </div>
-
-            <div class="mt-8 flex flex-col items-center space-y-3">
-                <button id="open-button" class="group relative bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-xl font-bold py-4 px-12 rounded-lg shadow-lg transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-700 overflow-hidden">
-                    <span class="relative z-10" id="open-button-text">Open Case ($2.50)</span>
-                    <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
-                </button>
-                <p id="balance-warning" class="text-red-500 font-semibold opacity-0 transition-opacity">Insufficient Funds!</p>
-            </div>
-        </div>
-
-
-        <!-- 3. INVENTORY PAGE -->
-        <div id="inventory-page" class="page">
-            <!-- Header & Controls -->
-            <div class="flex flex-col lg:flex-row justify-between items-end mb-4 border-b border-gray-700 pb-4 gap-4">
-                <div class="w-full lg:w-auto">
-                    <h2 class="text-3xl font-bold">Your Inventory</h2>
-                    <div class="text-gray-400 text-sm mt-1">
-                        Total Value: <span id="inventory-total-value" class="text-green-400 font-bold">$0.00</span>
-                    </div>
-                </div>
-                
-                <!-- Sort & Filter Controls -->
-                <div class="flex gap-2 w-full lg:w-auto">
-                    <select id="sort-select" class="bg-gray-700 text-white p-2 rounded text-sm border border-gray-600 outline-none focus:border-blue-500 flex-1">
-                        <option value="newest">Newest</option>
-                        <option value="value-desc" selected>High to Low</option>
-                        <option value="value-asc">Low to High</option>
-                        <option value="rarity">Rarity</option>
-                    </select>
-                    
-                    <select id="filter-select" class="bg-gray-700 text-white p-2 rounded text-sm border border-gray-600 outline-none focus:border-blue-500 flex-1">
-                        <option value="all">All Rarities</option>
-                        <option value="Mil-Spec">Mil-Spec (Blue)</option>
-                        <option value="Restricted">Restricted (Purple)</option>
-                        <option value="Classified">Classified (Pink)</option>
-                        <option value="Covert">Covert (Red)</option>
-                        <option value="Rare Special">Rare Special (Gold)</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Bulk Actions Panel -->
-            <div class="bg-gray-800 p-3 rounded-lg mb-4 flex flex-col sm:flex-row items-center justify-between border border-gray-700 gap-3">
-                <div class="flex items-center gap-2 text-gray-400">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    <span class="text-sm font-bold uppercase tracking-wider">Bulk Sell</span>
-                </div>
-                <div class="flex gap-2 w-full sm:w-auto">
-                    <select id="bulk-rarity-select" class="bg-gray-900 text-white p-2 rounded text-sm border border-gray-600 outline-none focus:border-red-500 flex-grow">
-                        <option value="" disabled selected>Select Rarity...</option>
-                        <option value="Mil-Spec">Sell all Mil-Spec</option>
-                        <option value="Restricted">Sell all Restricted</option>
-                        <option value="Classified">Sell all Classified</option>
-                        <option value="Covert">Sell all Covert</option>
-                    </select>
-                    <button id="bulk-sell-btn" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded text-sm font-bold transition whitespace-nowrap shadow-lg">
-                        Sell
-                    </button>
-                </div>
-            </div>
-
-            <!-- Grid -->
-            <div id="inventory-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-4 bg-gray-800 rounded-lg shadow-inner min-h-[300px]">
-                <!-- Inventory items will be rendered here -->
-            </div>
-        </div>
-
-        <!-- 4. CLICKER PAGE -->
-        <div id="clicker-page" class="page">
-            <!-- Changed justify-center to justify-start and added pt-12 to move content up -->
-            <div class="flex flex-col items-center justify-start min-h-[500px] text-center space-y-8 pt-12">
-                
-                <div class="space-y-2">
-                    <h2 class="text-4xl font-bold text-green-400">Earn Money</h2>
-                    <p class="text-gray-400">Click to earn <span class="text-green-500 font-bold">$0.25</span> per click.</p>
-                    <div class="flex gap-4 justify-center text-sm font-mono mt-4">
-                        <!-- CPS Counter Hidden -->
-                        <div class="hidden bg-gray-800 px-3 py-1 rounded border border-gray-600">
-                            CPS: <span id="cps-display" class="text-blue-400 font-bold">0</span>
-                        </div>
-                        <div id="warning-container" class="hidden bg-red-900/50 px-3 py-1 rounded border border-red-600/50 text-red-400 animate-pulse">
-                            Slow down!
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Button updated to match Open Case theme (Rectangular, Rounded, Shadow) -->
-                <button id="clicker-btn" class="group relative bg-green-600 hover:bg-green-500 active:bg-green-700 text-white text-xl font-bold py-6 px-20 rounded-lg shadow-lg transition-all duration-100 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-700 overflow-hidden active:scale-95 transform">
-                    <span class="relative z-10 flex flex-col items-center">
-                        <span class="text-green-200 font-mono mt-1">+$0.25</span>
-                    </span>
-                    <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
-                </button>
-
-                <p class="text-xs text-gray-500 max-w-md">
-                    Having more than 20 CPS for 3 seconds will result in a temporary cooldown.
-                </p>
-            </div>
-        </div>
-
-        <!-- Notification Slider (Toast) -->
-        <div id="notification-slider" class="fixed bottom-8 right-8 bg-red-600 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-4 border border-red-400 z-50 max-w-sm">
-            <div class="text-3xl">!</div>
-            <div>
-                <h4 class="font-bold text-lg">Action Blocked</h4>
-                <p class="text-sm text-red-100">Clicking too fast! Cooldown active for 10s.</p>
-            </div>
-        </div>
-
-    </main>
-
-
-    <!-- RESULT / INSPECT MODAL -->
+    <!-- GLOBAL RESULT MODAL -->
     <div id="result-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
         <div class="relative z-10 bg-gray-800 w-full max-w-sm rounded-xl shadow-2xl border border-gray-600 transform transition-all">
             <h2 id="modal-header-title" class="text-2xl font-bold text-center p-4 bg-gray-700/50 rounded-t-xl border-b border-gray-700">
@@ -315,10 +468,9 @@
             
             <div id="modal-content" class="p-6 flex flex-col items-center"></div>
             
-            <!-- Modal Actions -->
             <div class="p-4 bg-gray-700/50 rounded-b-xl flex gap-3 justify-center">
                 <button id="modal-sell-btn" class="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex flex-col items-center justify-center leading-none">
-                    <!-- Content is dynamic -->
+                    <!-- Dynamic Content -->
                 </button>
                 <button id="modal-close-btn" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-4 rounded-lg transition duration-200">
                     Collect
@@ -329,7 +481,37 @@
 
 
     <script type="module">
-        // --- 1. CONFIGURATION: MASTER CASE DATA ---
+        // --- 1. CONFIGURATION: RANKS & CASE DATA ---
+
+        const RANKS = [
+            { name: "Silver I", id: "s1", colorClass: "rank-silver" },
+            { name: "Silver II", id: "s2", colorClass: "rank-silver" },
+            { name: "Silver III", id: "s3", colorClass: "rank-silver" },
+            { name: "Silver IV", id: "s4", colorClass: "rank-silver" },
+            { name: "Silver Elite", id: "se", colorClass: "rank-silver" },
+            { name: "Silver Elite Master", id: "sem", colorClass: "rank-silver" },
+            { name: "Gold Nova I", id: "gn1", colorClass: "rank-nova" },
+            { name: "Gold Nova II", id: "gn2", colorClass: "rank-nova" },
+            { name: "Gold Nova III", id: "gn3", colorClass: "rank-nova" },
+            { name: "Gold Nova Master", id: "gnm", colorClass: "rank-nova" },
+            { name: "Master Guardian I", id: "mg1", colorClass: "rank-mg" },
+            { name: "Master Guardian II", id: "mg2", colorClass: "rank-mg" },
+            { name: "Master Guardian Elite", id: "mge", colorClass: "rank-mg" },
+            { name: "Distinguished Master Guardian", id: "dmg", colorClass: "rank-mg" },
+            { name: "Legendary Eagle", id: "le", colorClass: "rank-eagle" },
+            { name: "Legendary Eagle Master", id: "lem", colorClass: "rank-eagle" },
+            { name: "Supreme Master First Class", id: "smfc", colorClass: "rank-supreme" },
+            { name: "Global Elite", id: "ge", colorClass: "rank-global" }
+        ];
+
+        // XP Rewards based on unboxed item rarity
+        const XP_REWARDS = {
+            'Mil-Spec': 2,
+            'Restricted': 5,
+            'Classified': 10,
+            'Covert': 25,
+            'Rare Special': 50
+        };
 
         const RARITY_COLORS = {
             'Covert': '#EB445A',       // Red
@@ -339,6 +521,8 @@
             'Rare Special': '#FFD700', // Gold (Knives/Gloves)
         };
         
+        const RARITY_ORDER = ['Mil-Spec', 'Restricted', 'Classified', 'Covert', 'Rare Special'];
+
         const RARITY_WEIGHTS = [
             { rarity: 'Rare Special', cumulativeWeight: 0.0026 }, 
             { rarity: 'Covert', cumulativeWeight: 0.0064 },       
@@ -362,7 +546,7 @@
                 description: 'This container was released on August 14th, 2013, alongside the "The Arms Deal" update.',
                 image: 'https://cdn.csgoskins.gg/public/uih/products/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbl9jYXNlcy9jcmF0ZV92YWx2ZV8xLjIzYzc4M2QwMDViNDQ2YTEwMDRjOTcwNTdjZmI1YWMyZDhkYWUxODYucG5n/auto/auto/85/notrim/5ca053d2ed1cab5e64ec19204f6e4157.webp',
                 items: [
-                    { name: '★ M9 Bayonet | Vanilla', rarity: 'Rare Special', minPrice: 830.24, maxPrice: 874.32 , minPriceST: 843.11, maxPriceST: 872.94, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbnMvYmFzZV93ZWFwb25zL3dlYXBvbl9rbmlmZV9rYXJhbWJpdC4zMTQzNTI0MzE3ODMwYjY2OGVkMTdkMTgzYzlhZmVhMDc2ZmNiMTNiLnBuZw--/auto/auto/85/notrim/6223c0d549d5910e00ab6df4a873fb6b.webp' },
+                    { name: '★ M9 Bayonet | Vanilla', rarity: 'Rare Special', minPrice: 830.24, maxPrice: 874.32 , minPriceST: 843.11, maxPriceST: 872.94, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbnMvYmFzZV93ZWFwb25zL3dlYXBvbl9rbmlmZV9tOV9iYXlvbmV0Ljg4M2NhNTlhN2NjZmE2MTYzOTYzYjYwYzY5Y2RkMzk0YzJiODdhNWUucG5n/auto/auto/85/notrim/312b5ccca278ebd5bff9d8c44ff2173d.webp' },
                     { name: '★ M9 Bayonet | Fade', rarity: 'Rare Special', minPrice: 1148.53, maxPrice: 1163.00, minFloat: 0.00, maxFloat: 0.08, minPriceST: 1259.41, maxPriceST: 1406.91, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9rbmlmZV9tOV9iYXlvbmV0X2FhX2ZhZGVfbGlnaHQuNTZlNDM2N2ZkZDRiZGRkMzRiNDIwZjRjOWU4ODhlNjA5NWEyZTM5NC5wbmc-/auto/auto/85/notrim/2c70c8c79659c238b94b85010bfc3723.webp' },
                     { name: '★ Gut Knife | Safari Mesh', rarity: 'Rare Special', minPrice: 51.55, maxPrice: 242.52, minFloat: 0.06, maxFloat: 0.80, minPriceST: 64.39, maxPriceST: 115.82, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9rbmlmZV9ndXRfc3BfbWVzaF90YW5fbGlnaHQuYmZkOWVhMDY5OGIyNDY5YzE5NDgxMmY5NWIxMDMwMDU0OTc3NTFhNy5wbmc-/auto/auto/85/notrim/fa6c8b52b1dac3098017c79eb364e638.webp' },
                     { name: 'AWP | Lightning Strike', rarity: 'Covert', minPrice: 552.51, maxPrice: 556.45, minFloat: 0.00, maxFloat: 0.08, minPriceST: 941.00, maxPriceST: 1175.22, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9hd3BfYW1fbGlnaHRuaW5nX2F3cF9saWdodC5lZjU0ODcxOTU5YjY1NjE0MWIyNDY5MTI1NmRiYjFkNTQ5YjFlZmJhLnBuZw--/auto/auto/85/notrim/12c1e08907cf2fb660228a4ad6b33c80.webp' },
@@ -381,7 +565,7 @@
                 description: 'This container was released on September 19th, 2013, alongside the "Operation Bravo" update.',
                 image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbl9jYXNlcy9jcmF0ZV9vcGVyYXRpb25faWkuNWU1MTA0YTYyOTE3NDFjNTY5M2ExZTc4YmQ2ZWNjOTU2MGI1MWYwYS5wbmc-/auto/auto/85/notrim/e3493f6785b73327ce8cb43fe7b1f37f.webp', // Red
                 items: [
-                    { name: '★ M9 Bayonet | Vanilla', rarity: 'Rare Special', minPrice: 830.24, maxPrice: 874.32 , minPriceST: 843.11, maxPriceST: 872.94, image: 'https://cdn.csgoskins.gg/public/uih/products/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbnMvYmFzZV93ZWFwb25zL3dlYXBvbl9rbmlmZV9tOV9iYXlvbmV0Ljg4M2NhNTlhN2NjZmE2MTYzOTYzYjYwYzY5Y2RkMzk0YzJiODdhNWUucG5n/auto/auto/85/notrim/ec1a271b4ac26291fca9ca751f447438.png' },
+                    { name: '★ M9 Bayonet | Vanilla', rarity: 'Rare Special', minPrice: 830.24, maxPrice: 874.32 , minPriceST: 843.11, maxPriceST: 872.94, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL3dlYXBvbnMvYmFzZV93ZWFwb25zL3dlYXBvbl9rbmlmZV9tOV9iYXlvbmV0Ljg4M2NhNTlhN2NjZmE2MTYzOTYzYjYwYzY5Y2RkMzk0YzJiODdhNWUucG5n/auto/auto/85/notrim/312b5ccca278ebd5bff9d8c44ff2173d.webp' },
                     { name: '★ M9 Bayonet | Fade', rarity: 'Rare Special', minPrice: 1148.53, maxPrice: 1163.00, minFloat: 0.00, maxFloat: 0.08, minPriceST: 1259.41, maxPriceST: 1406.91, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9rbmlmZV9tOV9iYXlvbmV0X2FhX2ZhZGVfbGlnaHQuNTZlNDM2N2ZkZDRiZGRkMzRiNDIwZjRjOWU4ODhlNjA5NWEyZTM5NC5wbmc-/auto/auto/85/notrim/2c70c8c79659c238b94b85010bfc3723.webp' },
                     { name: '★ Flip Knife | Scorched', rarity: 'Rare Special', minPrice: 98.98, maxPrice: 402.50, minFloat: 0.06, maxFloat: 0.80, minPriceST: 115.82, maxPriceST: 140.69, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9rbmlmZV9mbGlwX3NwX2RhcHBsZV9saWdodC4wYzcwMzVhNDdjMjU4MDY4MDc0MWJhZDcwYzFhNTc4YTkzZDNlNzk2LnBuZw--/auto/auto/85/notrim/468e742b3d6764eb62bb5f9587f4f975.webp' },
                     { name: 'Desert Eagle | Golden Koi', rarity: 'Covert', minPrice: 187.72, maxPrice: 458.00, minFloat: 0.00, maxFloat: 0.12, minPriceST: 300.00, maxPriceST: 367.97, image: 'https://cdn.csgoskins.gg/public/uih/items/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9kZWFnbGVfYW1fc2NhbGVzX2JyYXZvX2xpZ2h0LjZkMGFiZWE5MTcwMTE2ZGYzYWU0MmJlMjIyMWM0NDY5ZDM4ZmYwMGQucG5n/auto/auto/85/notrim/94aca31109fa537231bd6614725f5dd4.webp' },
@@ -409,12 +593,20 @@
         // --- 2. STATE VARIABLES ---
         let inventory = [];
         let balance = 1000.00;
+        
+        // Leveling State
+        let currentLevelIndex = 0; // 0 = Silver I, 17 = Global Elite
+        let currentXp = 0;
+        
         let currentCaseId = null;
         let currentWinningItem = null; 
         
         // Inventory State
         let currentSort = 'value-desc';
         let currentFilter = 'all';
+
+        // Trade Up State
+        let tradeUpSlots = Array(10).fill(null);
 
         // --- 3. DOM ELEMENTS ---
         const spinnerContainer = document.getElementById('spinner-container');
@@ -429,7 +621,6 @@
         const modalHeader = document.getElementById('modal-header-title');
         const modalContent = document.getElementById('modal-content');
         const modalSellBtn = document.getElementById('modal-sell-btn');
-        // NOTE: Removed 'modalSellPrice' from global constants because its HTML is dynamic now.
         const modalCloseBtn = document.getElementById('modal-close-btn');
         
         const inventoryGrid = document.getElementById('inventory-grid');
@@ -449,40 +640,126 @@
         const clickerBtn = document.getElementById('clicker-btn');
         const cpsDisplay = document.getElementById('cps-display');
         const warningContainer = document.getElementById('warning-container');
+        
+        // Notification Slider (General purpose)
         const notificationSlider = document.getElementById('notification-slider');
+        const notifTitle = document.getElementById('notif-title');
+        const notifBody = document.getElementById('notif-body');
+        const notifIcon = document.getElementById('notif-icon');
 
+        // Trade Up Elements
+        const tradeUpSlotsContainer = document.getElementById('tradeup-slots');
+        const tradeUpInventoryGrid = document.getElementById('tradeup-inventory-grid');
+        const signContractBtn = document.getElementById('sign-contract-btn');
+        const contractError = document.getElementById('contract-error');
+        const tradeUpFilterStatus = document.getElementById('tradeup-filter-status');
 
-        // --- 4. ECONOMY LOGIC ---
+        // Rank Elements
+        const rankNameDisplay = document.getElementById('rank-name');
+        const xpText = document.getElementById('xp-text');
+        const xpBar = document.getElementById('xp-bar');
 
-        function loadBalance() {
-            const stored = localStorage.getItem('cs2_balance');
-            if (stored) {
-                balance = parseFloat(stored);
-            } else {
-                balance = 1000.00; 
-            }
+        // --- 4. ECONOMY & LEVELING LOGIC ---
+
+        function loadGameData() {
+            const storedBalance = localStorage.getItem('cs2_balance');
+            if (storedBalance) balance = parseFloat(storedBalance);
+            
+            const storedLevel = localStorage.getItem('cs2_level');
+            if (storedLevel) currentLevelIndex = parseInt(storedLevel);
+            
+            const storedXp = localStorage.getItem('cs2_xp');
+            if (storedXp) currentXp = parseInt(storedXp);
+
             updateBalanceDisplay();
+            updateRankDisplay();
+        }
+
+        function saveGameData() {
+            localStorage.setItem('cs2_balance', balance.toFixed(2));
+            localStorage.setItem('cs2_level', currentLevelIndex.toString());
+            localStorage.setItem('cs2_xp', currentXp.toString());
         }
 
         function updateBalance(amount) {
             balance += amount;
-            localStorage.setItem('cs2_balance', balance.toFixed(2));
+            saveGameData();
             updateBalanceDisplay();
         }
 
         function updateBalanceDisplay() {
             balanceDisplay.textContent = `$${balance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-            
-            // Animation effect
             balanceDisplay.classList.remove('balance-update');
-            void balanceDisplay.offsetWidth; // Trigger reflow
+            void balanceDisplay.offsetWidth; 
             balanceDisplay.classList.add('balance-update');
         }
 
-        function calculateInventoryValue() {
-            const total = inventory.reduce((sum, item) => sum + item.value, 0);
-            if (inventoryTotalValue) {
-                inventoryTotalValue.textContent = `$${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        // --- XP CALCULATIONS ---
+
+        // Formula: Harder to level up each level.
+        // Base gap starts at 500, increases by 250 each level.
+        // Lvl 0->1: 500 XP
+        // Lvl 1->2: 750 XP
+        // Lvl 2->3: 1000 XP
+        function calculateXpForNextLevel(levelIndex) {
+            return 500 + (levelIndex * 250);
+        }
+
+        function addXp(amount) {
+            // If already Global Elite (max index), just cap it or keep adding number
+            if (currentLevelIndex >= RANKS.length - 1) {
+                currentXp += amount; // Keep adding for fun, but no level up
+                updateRankDisplay();
+                saveGameData();
+                return;
+            }
+
+            currentXp += amount;
+            let xpNeeded = calculateXpForNextLevel(currentLevelIndex);
+
+            // Handle multiple level ups at once (unlikely but safe)
+            while (currentXp >= xpNeeded && currentLevelIndex < RANKS.length - 1) {
+                currentXp -= xpNeeded;
+                currentLevelIndex++;
+                xpNeeded = calculateXpForNextLevel(currentLevelIndex);
+                
+                // Trigger Level Up Notification
+                showNotification(
+                    "Level Up!", 
+                    `You reached ${RANKS[currentLevelIndex].name}!`, 
+                    "⭐",
+                    "bg-yellow-600"
+                );
+            }
+
+            updateRankDisplay();
+            saveGameData();
+        }
+
+        function updateRankDisplay() {
+            const currentRank = RANKS[currentLevelIndex];
+            const nextRank = RANKS[currentLevelIndex + 1]; // Can be undefined if max level
+            
+            // Update Rank Name
+            rankNameDisplay.textContent = currentRank.name;
+            
+            // Update Color Class (remove all first, then add current)
+            rankNameDisplay.classList.remove('rank-silver', 'rank-nova', 'rank-mg', 'rank-eagle', 'rank-supreme', 'rank-global');
+            rankNameDisplay.classList.add(currentRank.colorClass);
+
+            // Update Progress Bar
+            if (currentLevelIndex >= RANKS.length - 1) {
+                // Max Level
+                xpText.textContent = "MAX RANK";
+                xpBar.style.width = "100%";
+                xpBar.classList.remove('from-blue-600', 'to-blue-400');
+                xpBar.classList.add('from-yellow-500', 'to-yellow-300');
+            } else {
+                const xpNeeded = calculateXpForNextLevel(currentLevelIndex);
+                const percent = Math.min(100, (currentXp / xpNeeded) * 100);
+                
+                xpText.textContent = `${Math.floor(currentXp)} / ${xpNeeded} XP`;
+                xpBar.style.width = `${percent}%`;
             }
         }
 
@@ -503,6 +780,8 @@
             
             if (pageId === 'inventory-page') {
                 renderInventory();
+            } else if (pageId === 'tradeup-page') {
+                renderTradeUpPage();
             }
         }
 
@@ -527,8 +806,6 @@
                 
                 card.className = 'bg-gray-800 p-6 rounded-lg shadow-xl border-t-4 border-blue-600 transition duration-200 hover:scale-[1.02] cursor-pointer flex flex-col items-center text-center relative overflow-hidden group';
                 card.addEventListener('click', () => selectCase(caseId));
-
-                // Removed the absolute price badge
                 
                 card.innerHTML = `
                     <img src="${caseData.image}" alt="${caseId}" class="w-32 h-20 object-contain rounded-md mb-4 group-hover:rotate-3 transition-transform">
@@ -545,6 +822,13 @@
 
 
         // --- 6. INVENTORY LOGIC ---
+
+        function calculateInventoryValue() {
+            const total = inventory.reduce((sum, item) => sum + item.value, 0);
+            if (inventoryTotalValue) {
+                inventoryTotalValue.textContent = `$${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            }
+        }
 
         function renderInventory() {
             if (!inventoryGrid) return;
@@ -573,8 +857,7 @@
                     case 'value-asc':
                         return a.value - b.value;
                     case 'rarity':
-                        const rarityOrder = ['Rare Special', 'Covert', 'Classified', 'Restricted', 'Mil-Spec'];
-                        return rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity);
+                        return RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity);
                     default:
                         return 0;
                 }
@@ -593,16 +876,18 @@
                 const color = RARITY_COLORS[item.rarity];
                 const itemEl = document.createElement('div');
                 itemEl.className = 'item-card-inventory group';
-                itemEl.style.borderBottom = `4px solid ${color}`;
+                
+                if (item.rarity === 'Rare Special') {
+                    itemEl.style.border = `2px solid ${color}`;
+                    itemEl.style.boxShadow = `inset 0 0 15px ${color}40`;
+                } else {
+                    itemEl.style.borderBottom = `4px solid ${color}`;
+                }
                 
                 itemEl.addEventListener('click', () => showModal(item, 'inventory'));
 
                 const wearAcronym = item.wear ? item.wear.match(/\((.*?)\)/)?.[1] || '' : '';
-                
-                // Formatting name for display (remove 'StatTrak™' for small card to save space, or keep it if you prefer)
-                // Let's keep it but truncate if too long
                 let displayName = item.name;
-                
                 const stBadge = item.isStatTrak 
                     ? `<span class="absolute top-1 left-1 text-[10px] font-bold bg-orange-600/90 px-1 rounded text-white">ST™</span>` 
                     : '';
@@ -621,6 +906,17 @@
         function loadInventory() {
             const storedInventory = localStorage.getItem('cs2_inventory');
             inventory = storedInventory ? JSON.parse(storedInventory) : [];
+            
+            // Migration: Ensure all items have IDs
+            let needsSave = false;
+            inventory.forEach(item => {
+                if(!item.id) {
+                    item.id = crypto.randomUUID();
+                    needsSave = true;
+                }
+            });
+            if(needsSave) localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
+
             renderInventory();
         }
 
@@ -635,23 +931,25 @@
             localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
             renderInventory();
         }
+        
+        function removeMultipleItemsFromInventory(itemIds) {
+            inventory = inventory.filter(i => !itemIds.includes(i.id));
+            localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
+            renderInventory();
+        }
 
         function handleBulkSell() {
             const rarityToSell = bulkRaritySelect.value;
             if (!rarityToSell) return;
 
-            // Find items
             const itemsToSell = inventory.filter(item => item.rarity === rarityToSell);
             
             if (itemsToSell.length === 0) {
-                // Show "No items" modal
                 modalHeader.textContent = 'Bulk Sell';
                 modalContent.innerHTML = `<p class="text-center text-gray-300 text-lg my-4">You don't have any <span class="font-bold text-white">${rarityToSell}</span> items to sell.</p>`;
-                
                 modalSellBtn.style.display = 'none';
                 modalCloseBtn.textContent = 'OK';
                 modalCloseBtn.onclick = hideModal;
-                
                 resultModal.classList.remove('hidden');
                 resultModal.classList.add('visible');
                 return;
@@ -660,7 +958,6 @@
             const totalValue = itemsToSell.reduce((sum, item) => sum + item.value, 0);
             const count = itemsToSell.length;
 
-            // Show Confirmation Modal (replacing window.confirm)
             modalHeader.textContent = 'Confirm Bulk Sell';
             modalContent.innerHTML = `
                 <div class="text-center my-4">
@@ -670,40 +967,212 @@
                 </div>
             `;
 
-            // Configure Sell Button
-            modalSellBtn.style.display = 'flex'; // Ensure it's visible
+            modalSellBtn.style.display = 'flex'; 
             modalSellBtn.innerHTML = `<span class="text-lg font-bold">CONFIRM SELL</span>`;
             modalSellBtn.className = 'flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center';
             
             modalSellBtn.onclick = () => {
-                // Execute Sell
                 updateBalance(totalValue);
                 inventory = inventory.filter(item => item.rarity !== rarityToSell);
                 localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
-                
-                // Reset UI
                 bulkRaritySelect.value = "";
                 renderInventory();
                 hideModal();
             };
 
-            // Configure Cancel Button
             modalCloseBtn.textContent = 'Cancel';
             modalCloseBtn.onclick = hideModal;
 
             resultModal.classList.remove('hidden');
             resultModal.classList.add('visible');
         }
-        
 
-        // --- 7. SIMULATOR & GENERATION ---
+
+        // --- 7. TRADE UP LOGIC ---
+        
+        function renderTradeUpPage() {
+            // 1. Render Slots
+            tradeUpSlotsContainer.innerHTML = '';
+            let activeRarity = null;
+            
+            const filledSlots = tradeUpSlots.filter(s => s !== null);
+            if (filledSlots.length > 0) {
+                activeRarity = filledSlots[0].rarity;
+                contractError.style.opacity = '0';
+                signContractBtn.disabled = filledSlots.length < 10;
+            } else {
+                signContractBtn.disabled = true;
+                contractError.style.opacity = '0';
+            }
+
+            tradeUpSlots.forEach((item, index) => {
+                const slot = document.createElement('div');
+                slot.className = `tradeup-slot ${item ? 'filled' : ''}`;
+                
+                if (item) {
+                    const color = RARITY_COLORS[item.rarity];
+                    slot.style.borderColor = color;
+                    slot.innerHTML = `
+                        <img src="${item.image}" class="w-16 h-12 object-contain">
+                        <div class="remove-overlay">✕</div>
+                    `;
+                    slot.onclick = () => removeTradeUpItem(index);
+                } else {
+                    slot.innerHTML = `<span class="text-gray-600 text-2xl font-bold">+</span>`;
+                }
+                tradeUpSlotsContainer.appendChild(slot);
+            });
+
+            // 2. Render Inventory (Filtered)
+            tradeUpInventoryGrid.innerHTML = '';
+            
+            const slotItemIds = filledSlots.map(i => i.id);
+            
+            const tradeUpables = inventory.filter(item => {
+                if (slotItemIds.includes(item.id)) return false; 
+                if (activeRarity && item.rarity !== activeRarity) return false; 
+                if (item.rarity === 'Covert' || item.rarity === 'Rare Special') return false; 
+                return true;
+            });
+            
+            if (activeRarity) {
+                tradeUpFilterStatus.textContent = `(Showing ${activeRarity} items)`;
+                tradeUpFilterStatus.classList.add('text-blue-400');
+            } else {
+                tradeUpFilterStatus.textContent = `(Showing all tradeable items)`;
+                tradeUpFilterStatus.classList.remove('text-blue-400');
+            }
+
+            if (tradeUpables.length === 0) {
+                tradeUpInventoryGrid.innerHTML = `<p class="col-span-full text-center text-gray-500 py-8">No eligible items found.</p>`;
+                return;
+            }
+
+            tradeUpables.sort((a, b) => a.value - b.value);
+
+            tradeUpables.forEach(item => {
+                const color = RARITY_COLORS[item.rarity];
+                const itemEl = document.createElement('div');
+                itemEl.className = 'bg-gray-700 hover:bg-gray-600 p-2 rounded border-b-4 cursor-pointer transition-all flex flex-col items-center';
+                itemEl.style.borderColor = color;
+                
+                itemEl.innerHTML = `
+                    <img src="${item.image}" class="w-16 h-12 object-contain mb-1">
+                    <p class="text-[10px] text-gray-300 truncate w-full text-center">${item.name}</p>
+                    <p class="text-xs font-bold text-green-400">$${item.value.toFixed(2)}</p>
+                `;
+                itemEl.onclick = () => addTradeUpItem(item);
+                tradeUpInventoryGrid.appendChild(itemEl);
+            });
+        }
+
+        function addTradeUpItem(item) {
+            const firstEmptyIndex = tradeUpSlots.findIndex(s => s === null);
+            if (firstEmptyIndex !== -1) {
+                const filled = tradeUpSlots.filter(s => s !== null);
+                if (filled.length > 0 && filled[0].rarity !== item.rarity) {
+                    return; 
+                }
+                tradeUpSlots[firstEmptyIndex] = item;
+                renderTradeUpPage();
+            }
+        }
+
+        function removeTradeUpItem(index) {
+            tradeUpSlots[index] = null;
+            renderTradeUpPage();
+        }
+
+        function executeTradeUp() {
+            const inputs = tradeUpSlots.filter(i => i !== null);
+            if (inputs.length !== 10) {
+                contractError.style.opacity = '1';
+                return;
+            }
+
+            const inputRarity = inputs[0].rarity;
+            if (!inputs.every(i => i.rarity === inputRarity)) {
+                contractError.textContent = "All items must be same rarity!";
+                contractError.style.opacity = '1';
+                return;
+            }
+
+            const rarityIndex = RARITY_ORDER.indexOf(inputRarity);
+            if (rarityIndex >= RARITY_ORDER.length - 2) return;
+            const targetRarity = RARITY_ORDER[rarityIndex + 1];
+
+            let potentialOutcomes = [];
+            
+            inputs.forEach(inputItem => {
+                const caseId = inputItem.case;
+                if (CASES[caseId]) {
+                    const possibleItems = CASES[caseId].items
+                        .filter(i => i.rarity === targetRarity)
+                        .map(i => ({ ...i, case: caseId })); 
+                    potentialOutcomes.push(...possibleItems);
+                }
+            });
+
+            if (potentialOutcomes.length === 0) {
+                alert("Error: No valid outcomes found for these inputs.");
+                return;
+            }
+
+            const winningBaseItem = potentialOutcomes[Math.floor(Math.random() * potentialOutcomes.length)];
+
+            const avgFloat = inputs.reduce((sum, item) => sum + parseFloat(item.float), 0) / 10;
+            const minFloat = winningBaseItem.minFloat !== undefined ? winningBaseItem.minFloat : 0.00;
+            const maxFloat = winningBaseItem.maxFloat !== undefined ? winningBaseItem.maxFloat : 1.00;
+            
+            const resultFloatVal = (avgFloat * (maxFloat - minFloat)) + minFloat;
+            const resultFloat = resultFloatVal.toFixed(4);
+            const f = parseFloat(resultFloat);
+            
+            let wear = '';
+            if (f <= 0.07) wear = 'Factory New (FN)';
+            else if (f <= 0.15) wear = 'Minimal Wear (MW)';
+            else if (f <= 0.38) wear = 'Field-Tested (FT)';
+            else if (f <= 0.45) wear = 'Well-Worn (WW)';
+            else wear = 'Battle-Scarred (BS)';
+
+            const allStatTrak = inputs.every(i => i.isStatTrak);
+            
+            let finalName = winningBaseItem.name;
+            if (allStatTrak) {
+                 if (finalName.startsWith('★')) {
+                    finalName = finalName.replace('★ ', '★ StatTrak™ ');
+                } else {
+                    finalName = 'StatTrak™ ' + finalName;
+                }
+            }
+
+            const newItem = {
+                ...winningBaseItem,
+                name: finalName,
+                isStatTrak: allStatTrak,
+                float: resultFloat,
+                wear: wear,
+                pattern_id: Math.floor(Math.random() * 1000) + 1,
+                case: winningBaseItem.case, 
+            };
+            
+             newItem.value = generateItemValue(winningBaseItem, resultFloat, minFloat, maxFloat, allStatTrak);
+
+            removeMultipleItemsFromInventory(inputs.map(i => i.id));
+            tradeUpSlots = Array(10).fill(null);
+            renderTradeUpPage();
+            
+            currentWinningItem = newItem; 
+            showModal(newItem, 'unbox'); 
+        }
+
+
+        // --- 8. SIMULATOR & GENERATION ---
 
         function generateFloatAndWear(min = 0.0, max = 1.0) {
-            // Ensure min/max are numbers
             const minF = parseFloat(min);
             const maxF = parseFloat(max);
             
-            // Generate random float within custom range
             const randomVal = Math.random() * (maxF - minF) + minF;
             const float = randomVal.toFixed(4);
             const f = parseFloat(float);
@@ -719,27 +1188,21 @@
         }
 
         function generateItemValue(item, floatVal, minFloat, maxFloat, isStatTrak) {
-            // First check for specific range on the item itself
             let min, max;
             
-            // Determine Base Range
             if (isStatTrak) {
-                // StatTrak Logic
                 if (item.minPriceST !== undefined && item.maxPriceST !== undefined) {
                     min = item.minPriceST;
                     max = item.maxPriceST;
                 } else if (item.minPrice !== undefined && item.maxPrice !== undefined) {
-                    // Fallback: 1.5x normal price if no specific ST price set
                     min = item.minPrice * 1.5;
                     max = item.maxPrice * 1.5;
                 } else {
-                    // Fallback: Rarity defaults * 1.5
                     const range = PRICE_RANGES[item.rarity] || PRICE_RANGES['Mil-Spec'];
                     min = range.min * 1.5;
                     max = range.max * 1.5;
                 }
             } else {
-                // Normal Logic
                 if (item.minPrice !== undefined && item.maxPrice !== undefined) {
                     min = item.minPrice;
                     max = item.maxPrice;
@@ -754,7 +1217,6 @@
             const minF = (minFloat !== undefined) ? minFloat : 0.0;
             const maxF = (maxFloat !== undefined) ? maxFloat : 1.0;
             
-            // Quality Calculation
             let qualityFactor = 1.0;
             if (maxF > minF) {
                 qualityFactor = (maxF - f) / (maxF - minF);
@@ -763,14 +1225,11 @@
             if (qualityFactor < 0) qualityFactor = 0;
             if (qualityFactor > 1) qualityFactor = 1;
             
-            // Price Calculation
             let exactValue = min + ((max - min) * qualityFactor);
             
-            // Jitter
             const jitter = 0.99 + (Math.random() * 0.02); 
             exactValue = exactValue * jitter;
 
-            // Strict Clamp
             if (exactValue < min) exactValue = min;
             if (exactValue > max) exactValue = max; 
 
@@ -797,10 +1256,8 @@
             const maxFloat = baseItem.maxFloat !== undefined ? baseItem.maxFloat : 1.00;
             const { float, wear } = generateFloatAndWear(minFloat, maxFloat);
 
-            // StatTrak Logic (10% chance)
             const isStatTrak = Math.random() <= 0.10;
 
-            // Format Name
             let finalName = baseItem.name;
             if (isStatTrak) {
                 if (finalName.startsWith('★')) {
@@ -834,12 +1291,19 @@
 
             if (isLarge) {
                 div.className = 'flex flex-col items-center w-full';
-                div.style.borderTop = `8px solid ${color}`;
                 
-                // Badge for large view
+                if (item.rarity === 'Rare Special') {
+                    div.style.border = `4px solid ${color}`;
+                    div.style.boxShadow = `0 0 20px ${color}40`;
+                } else {
+                    div.style.borderTop = `8px solid ${color}`;
+                }
+                
                 const stBadge = item.isStatTrak 
                     ? `<span class="bg-orange-600 text-white px-2 py-1 rounded text-xs font-bold uppercase tracking-wide mb-2">StatTrak™</span>` 
                     : '';
+
+                const xpValue = XP_REWARDS[item.rarity];
 
                 div.innerHTML = `
                     <img src="${imageUrl}" alt="${item.name}" class="w-full h-48 object-contain bg-gray-900 rounded-md mt-4 shadow-lg" 
@@ -863,7 +1327,11 @@
                 `;
             } else {
                 div.className = 'item-card'; 
-                div.style.borderTop = `4px solid ${color}`;
+                if (item.rarity === 'Rare Special') {
+                    div.style.border = `2px solid ${color}`;
+                } else {
+                    div.style.borderTop = `4px solid ${color}`;
+                }
                 div.innerHTML = `
                     <img src="${imageUrl}" alt="${item.name}" onerror="this.src='${placeholderUrl}'">
                 `;
@@ -886,7 +1354,7 @@
             });
         }
 
-        // --- 8. CLICKER & ANTI-CHEAT LOGIC ---
+        // --- 9. CLICKER & ANTI-CHEAT LOGIC ---
         
         let clickHistory = [];
         let highCpsStart = null;
@@ -894,11 +1362,7 @@
         
         function handleClicker() {
             if (isCooldownActive) return;
-            
-            // Add Money
             updateBalance(0.25);
-            
-            // Record Timestamp
             const now = Date.now();
             clickHistory.push(now);
         }
@@ -907,140 +1371,125 @@
             if (isCooldownActive) return;
 
             const now = Date.now();
-            // Remove clicks older than 1 second
             clickHistory = clickHistory.filter(timestamp => now - timestamp <= 1000);
             
             const currentCps = clickHistory.length;
             cpsDisplay.textContent = currentCps;
             
-            // Logic: > 20 CPS for > 5 seconds
             if (currentCps > 20) {
                 if (!highCpsStart) {
                     highCpsStart = now;
                 }
-                
                 const elapsedHighCps = now - highCpsStart;
-                
-                // Show Warning if maintaining high CPS for > 1.5 seconds
                 if (elapsedHighCps > 1500) {
                     warningContainer.classList.remove('hidden');
                 }
-
-                // Ban Trigger (> 3 seconds)
                 if (elapsedHighCps > 3000) {
                     triggerCooldown();
                 }
             } else {
-                // Reset if they drop below 20
                 highCpsStart = null;
                 warningContainer.classList.add('hidden');
             }
         }
         
+        function showNotification(title, body, iconText = '!', bgColor = 'bg-red-600') {
+            notifTitle.textContent = title;
+            notifBody.textContent = body;
+            notifIcon.textContent = iconText;
+            notificationSlider.className = `fixed bottom-8 right-8 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-4 border border-gray-600 z-50 max-w-sm ${bgColor}`;
+            
+            notificationSlider.classList.add('visible');
+            setTimeout(() => {
+                notificationSlider.classList.remove('visible');
+            }, 5000);
+        }
+
         function triggerCooldown() {
             isCooldownActive = true;
             clickerBtn.disabled = true;
             warningContainer.classList.add('hidden');
             
-            // Show Notification
-            notificationSlider.classList.add('visible');
+            showNotification("Action Blocked", "Clicking too fast! Cooldown active for 10s.");
             
-            // Cooldown for 10 seconds
             setTimeout(() => {
                 isCooldownActive = false;
                 clickerBtn.disabled = false;
                 highCpsStart = null;
-                clickHistory = []; // Clear history to prevent instant re-trigger
-                notificationSlider.classList.remove('visible');
+                clickHistory = []; 
             }, 10000);
         }
         
-        // Run monitor every 100ms
         setInterval(monitorCps, 100);
 
 
-        // --- 9. ACTIONS & ANIMATIONS ---
+        // --- 10. ACTIONS & ANIMATIONS ---
 
         function startSpin() {
             if (openButton.disabled || !currentCaseId) return;
             
             const caseCost = CASES[currentCaseId].price;
 
-            // Check Balance
             if (balance < caseCost) {
                 balanceWarning.style.opacity = '1';
                 setTimeout(() => balanceWarning.style.opacity = '0', 2000);
                 return;
             }
 
-            // Deduct Money
             updateBalance(-caseCost);
-
-            // Prepare Spin
             openButton.disabled = true;
             hideModal();
             balanceWarning.style.opacity = '0';
 
             const winningItem = pickRandomItem(currentCaseId);
-            currentWinningItem = winningItem; // Save for modal
+            currentWinningItem = winningItem; 
             
             populateSpinner(winningItem);
 
-            // Reset Position
             spinnerTrack.style.transition = 'none';
             spinnerTrack.style.transform = 'translateX(0)';
 
-            // Calculate Landing
             const winningItemIndex = REEL_LENGTH - 6;
             const containerWidth = spinnerContainer.clientWidth;
             const targetPosition = (winningItemIndex * ITEM_WIDTH_PX) + (ITEM_WIDTH_PX / 2) - (containerWidth / 2);
             const jitter = (Math.random() - 0.5) * (ITEM_WIDTH_PX * 0.4);
             const finalTranslateX = -(targetPosition + jitter);
 
-            // Trigger Animation
             setTimeout(() => {
                 spinnerTrack.style.transition = 'transform 6s cubic-bezier(0.1, 0.6, 0.1, 1)';
                 spinnerTrack.style.transform = `translateX(${finalTranslateX}px)`;
             }, 50); 
 
-            // Show Result
             setTimeout(() => {
+                // Award XP!
+                const gainedXp = XP_REWARDS[winningItem.rarity];
+                addXp(gainedXp);
+
                 showModal(winningItem, 'unbox');
                 openButton.disabled = false;
             }, 6100);
         }
 
-        /**
-         * Handles Sell Logic
-         * @param {Object} item - The item to sell
-         * @param {boolean} isInventoryItem - True if item is already in inventory (remove it), False if just unboxed (don't add it)
-         */
         function sellItem(item, isInventoryItem) {
             updateBalance(item.value);
-            
             if (isInventoryItem) {
                 removeItemFromInventory(item.id);
             }
-            
             hideModal();
         }
 
-        /**
-         * Handles Keep/Collect Logic
-         */
         function keepItem(item) {
             saveItemToInventory(item);
             hideModal();
         }
 
-        // --- 10. MODAL SYSTEM ---
+        // --- 11. MODAL SYSTEM ---
 
         function showModal(item, type) {
-            resultModal.dataset.type = type; // Track context for click-outside logic
+            resultModal.dataset.type = type; 
             modalContent.innerHTML = ''; 
             modalContent.appendChild(createItemElement(item, true));
             
-            // Reset the Sell Button to "Item Mode" (Green with Price)
             modalSellBtn.style.display = 'flex';
             modalSellBtn.className = 'flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex flex-col items-center justify-center leading-none';
             modalSellBtn.innerHTML = `
@@ -1048,20 +1497,15 @@
                 <span class="text-lg">$${item.value.toFixed(2)}</span>
             `;
 
-            // Configure Buttons based on context
             if (type === 'unbox') {
-                // Unbox Context
-                modalHeader.textContent = 'You Unboxed:';
+                modalHeader.textContent = 'New Item!';
                 modalCloseBtn.textContent = 'Collect Item';
-                
                 modalSellBtn.onclick = () => sellItem(item, false);
                 modalCloseBtn.onclick = () => keepItem(item);
 
             } else {
-                // Inventory Context
                 modalHeader.textContent = 'Inspect Item';
                 modalCloseBtn.textContent = 'Close';
-
                 modalSellBtn.onclick = () => sellItem(item, true);
                 modalCloseBtn.onclick = hideModal;
             }
@@ -1073,17 +1517,17 @@
         function hideModal() {
             resultModal.classList.add('hidden');
             resultModal.classList.remove('visible');
-            resultModal.dataset.type = ''; // Reset context
+            resultModal.dataset.type = ''; 
         }
 
 
-        // --- 11. INITIALIZATION ---
+        // --- 12. INITIALIZATION ---
         
         openButton.addEventListener('click', startSpin);
         backToCasesBtn.addEventListener('click', () => navigate('case-selection-page'));
         clickerBtn.addEventListener('click', handleClicker);
+        signContractBtn.addEventListener('click', executeTradeUp);
         
-        // Sort and Filter Listeners
         sortSelect.addEventListener('change', (e) => {
             currentSort = e.target.value;
             renderInventory();
@@ -1094,12 +1538,10 @@
             renderInventory();
         });
         
-        // Bulk Sell Listener
         bulkSellBtn.addEventListener('click', handleBulkSell);
         
         resultModal.addEventListener('click', (e) => {
             if (e.target === resultModal) {
-                // If clicking outside during unbox, auto-collect instead of just closing
                 if (resultModal.dataset.type === 'unbox' && currentWinningItem) {
                     keepItem(currentWinningItem);
                 } else {
@@ -1115,14 +1557,12 @@
         });
         
         window.addEventListener('load', () => {
-            loadBalance();
+            loadGameData();
             loadInventory();
             renderCaseSelectionPage();
             navigate('case-selection-page'); 
             
-            // Preload spinner
             if(Object.keys(CASES).length > 0) {
-                // Default select first case without navigating
                 currentCaseId = Object.keys(CASES)[0];
                 const price = CASES[currentCaseId].price;
                 currentCaseTitle.textContent = `Opening: ${currentCaseId}`;
@@ -1135,6 +1575,3 @@
 
 </body>
 </html>
-
-
-
