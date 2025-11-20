@@ -322,7 +322,7 @@
 
                     <div class="flex flex-col items-center space-y-4">
                         <button id="open-button" class="group relative bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-xl font-bold py-4 px-12 rounded-lg shadow-lg transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-700 overflow-hidden">
-                            <span class="relative z-10" id="open-button-text">Open Case ($2.50)</span>
+                            <span class="relative z-10" id="open-button-text">Open Case ($-.--)</span>
                             <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
                         </button>
                         <p id="balance-warning" class="text-red-500 font-semibold opacity-0 transition-opacity h-6">Insufficient Funds!</p>
@@ -668,6 +668,117 @@
         const rankNameDisplay = document.getElementById('rank-name');
         const xpText = document.getElementById('xp-text');
         const xpBar = document.getElementById('xp-bar');
+
+        // --- 3.1 AUDIO SETUP ---
+        
+        // UPDATED: Converted to raw.githubusercontent.com to fix CORS/Loading issues
+        const CLICK_SOUND_URL = 'https://raw.githubusercontent.com/casesimulator/casesimulator/refs/heads/main/caseclicksfx.mp3'; 
+        const UNBOX_SOUND_URL = 'https://raw.githubusercontent.com/casesimulator/casesimulator/refs/heads/main/caseunboxsfx.mp3';
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let clickBuffer = null;
+        let unboxBuffer = null;
+
+        // Preload the sounds
+        async function loadSound() {
+            // Load Click Sound
+            try {
+                const response = await fetch(CLICK_SOUND_URL);
+                if (response.ok) {
+                    const arrayBuffer = await response.arrayBuffer();
+                    clickBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                }
+            } catch (e) { console.error("Click sound load failed:", e); }
+
+            // Load Unbox Sound
+            try {
+                const response = await fetch(UNBOX_SOUND_URL);
+                if (response.ok) {
+                    const arrayBuffer = await response.arrayBuffer();
+                    unboxBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                }
+            } catch (e) { console.error("Unbox sound load failed:", e); }
+        }
+        loadSound(); // Load immediately
+
+        function playUnboxSound() {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            if (unboxBuffer) {
+                const source = audioCtx.createBufferSource();
+                const gainNode = audioCtx.createGain();
+                source.buffer = unboxBuffer;
+                source.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                gainNode.gain.value = 0.6; // Set unbox volume (0.6 is usually a good balance)
+                source.start(0);
+            }
+        }
+
+        function playClickSound(speedFactor = 0) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            
+            // speedFactor is roughly 0.0 (slow) to 1.0 (fast)
+            
+            if (clickBuffer) {
+                const source = audioCtx.createBufferSource();
+                const gainNode = audioCtx.createGain();
+                
+                source.buffer = clickBuffer;
+                
+                // CONNECT: Source -> Gain -> Speakers
+                source.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                // --- DYNAMIC AUDIO PHYSICS ---
+                
+                // 1. PITCH: Very subtle shift (1.0 to 1.05)
+                // Keeps the sound character consistent while adding just a tiny bit of energy
+                source.playbackRate.value = 1.0 + (speedFactor * 0.05); 
+
+                // 2. VOLUME: More consistent (0.8 to 1.0)
+                // We only drop volume slightly now, so it doesn't sound "weak" when fast
+                const volume = Math.max(0.8, 1.0 - (speedFactor * 0.2));
+                gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+
+                source.start(0);
+                
+                // 3. DURATION: Smoother Decay
+                // Fast: ~0.12s (More body than before)
+                // Slow: ~0.52s (Full decay)
+                const decayDuration = 0.12 + ((1.0 - speedFactor) * 0.4);
+
+                // Smoothly fade out
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + decayDuration);
+                
+                // Cleanup
+                source.stop(audioCtx.currentTime + decayDuration + 0.02);
+
+            } else {
+                // Fallback Synth (Mechanical Click)
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                // Reduced pitch scaling for synth too
+                const baseFreq = 150 + (speedFactor * 20);
+                
+                osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.05);
+                
+                const volume = Math.max(0.15, 0.25 - (speedFactor * 0.1));
+                gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.05);
+            }
+        }
 
         // --- 4. ECONOMY & LEVELING LOGIC ---
 
@@ -1533,6 +1644,11 @@
                 setTimeout(() => balanceWarning.style.opacity = '0', 2000);
                 return;
             }
+            
+            // Initialize/Resume Audio context on user interaction
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
 
             updateBalance(-caseCost);
             openButton.disabled = true;
@@ -1552,13 +1668,56 @@
             const targetPosition = (winningItemIndex * ITEM_WIDTH_PX) + (ITEM_WIDTH_PX / 2) - (containerWidth / 2);
             const jitter = (Math.random() - 0.5) * (ITEM_WIDTH_PX * 0.4);
             const finalTranslateX = -(targetPosition + jitter);
+            
+            // --- AUDIO TRACKING LOGIC ---
+            let lastTickIndex = -1;
+            let animationId = null;
+            let lastPos = 0; // To calculate speed
+            
+            const trackSound = () => {
+                const trackRect = spinnerTrack.getBoundingClientRect();
+                const tickerRect = document.getElementById('ticker').getBoundingClientRect();
+                const currentPos = trackRect.left;
+                
+                // 1. Calculate Speed (Pixels per frame)
+                // Typical max speed is around 60-80px per frame on start
+                const deltaX = Math.abs(currentPos - lastPos);
+                lastPos = currentPos;
+
+                // Normalize speed (0 to 1). Max realistic speed is ~50px/frame
+                const speedFactor = Math.min(deltaX / 50, 1.0); 
+
+                // 2. Calculate Index
+                const relativePos = tickerRect.left - trackRect.left;
+                const currentIndex = Math.floor((relativePos) / ITEM_WIDTH_PX);
+                
+                if (currentIndex > lastTickIndex && lastTickIndex !== -1) {
+                    // Play sound every time, but pass the speedFactor to modulate it
+                    playClickSound(speedFactor);
+                }
+                
+                lastTickIndex = currentIndex;
+                
+                animationId = requestAnimationFrame(trackSound);
+            };
 
             setTimeout(() => {
+                // Initialize position before starting animation loop
+                lastPos = spinnerTrack.getBoundingClientRect().left;
+                
                 spinnerTrack.style.transition = 'transform 6s cubic-bezier(0.1, 0.6, 0.1, 1)';
                 spinnerTrack.style.transform = `translateX(${finalTranslateX}px)`;
+                
+                // Start tracking sound
+                lastTickIndex = -1; 
+                animationId = requestAnimationFrame(trackSound);
+                
             }, 50); 
 
             setTimeout(() => {
+                // Stop tracking sound
+                if (animationId) cancelAnimationFrame(animationId);
+                
                 // Award XP!
                 const gainedXp = XP_REWARDS[winningItem.rarity];
                 addXp(gainedXp);
@@ -1596,6 +1755,7 @@
             `;
 
             if (type === 'unbox') {
+                playUnboxSound(); // Play sound when revealing new item
                 modalHeader.textContent = 'New Item!';
                 modalCloseBtn.textContent = 'Collect Item';
                 modalSellBtn.onclick = () => sellItem(item, false);
