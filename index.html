@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Case Simulator</title>
+    <title>Case Simulator & Casino</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -231,6 +231,63 @@
         .rank-eagle { color: #9ca3af; text-shadow: 0 0 5px rgba(156, 163, 175, 0.5); } /* Darker silver */
         .rank-supreme { color: #f472b6; text-shadow: 0 0 5px rgba(244, 114, 182, 0.3); }
         .rank-global { color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
+
+        /* --- GAMBLING STYLES --- */
+        
+        /* Coinflip Coin */
+        .coin-container {
+            perspective: 1000px;
+        }
+        .coin {
+            width: 150px;
+            height: 150px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 3s ease-out;
+        }
+        .coin.flipping {
+            animation: flipCoin 3s ease-out forwards;
+        }
+        .coin-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 2rem;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 15px rgba(0,0,0,0.5);
+            border: 8px solid;
+        }
+        .side-ct {
+            background-color: #1e3a8a; /* blue-900 */
+            color: #60a5fa; /* blue-400 */
+            border-color: #3b82f6;
+        }
+        .side-t {
+            background-color: #713f12; /* yellow-900 */
+            color: #facc15; /* yellow-400 */
+            border-color: #eab308;
+            transform: rotateY(180deg);
+        }
+
+        /* Case Battle */
+        .battle-slot {
+            transition: all 0.3s ease;
+        }
+        .battle-slot.winner {
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.4);
+            border-color: #22c55e;
+            transform: scale(1.02);
+        }
+        .battle-slot.loser {
+            opacity: 0.5;
+            filter: grayscale(0.8);
+        }
+
     </style>
 </head>
 <body class="bg-gray-900 text-white flex h-screen w-full overflow-hidden">
@@ -258,8 +315,15 @@
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
                 <span class="hidden md:inline">Trade Up</span>
             </button>
+
+            <!-- GAMES TAB (NEW) -->
+            <button id="nav-games" class="nav-link" data-page="games-page">
+                <!-- Dice/Controller Icon -->
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="hidden md:inline">Games</span>
+                <span class="text-[10px] font-bold bg-purple-600 px-1.5 py-0.5 rounded ml-auto hidden md:inline">NEW</span>
+            </button>
             
-            <!-- MISSIONS TAB (NEW) -->
             <button id="nav-missions" class="nav-link" data-page="missions-page">
                 <!-- Target Icon -->
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
@@ -365,6 +429,132 @@
                     </div>
 
                 </div>
+
+                <!-- GAMES PAGE (NEW) -->
+                <div id="games-page" class="page">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-3xl font-bold">Casino Games</h2>
+                    </div>
+                    
+                    <!-- Game Selection Tabs -->
+                    <div class="flex gap-4 mb-8 border-b border-gray-700 pb-4 overflow-x-auto">
+                        <button id="tab-coinflip" class="game-tab-btn active px-6 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg font-bold transition-colors border border-gray-600 border-b-4 border-b-blue-500">Coinflip</button>
+                        <button id="tab-casebattle" class="game-tab-btn px-6 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg font-bold text-gray-400 transition-colors border border-transparent">Case Battle</button>
+                    </div>
+
+                    <!-- COINFLIP GAME -->
+                    <div id="game-coinflip" class="game-view block">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                            
+                            <!-- Controls -->
+                            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
+                                <h3 class="text-xl font-bold mb-4 text-gray-200">Place Bet</h3>
+                                
+                                <div class="mb-6">
+                                    <label class="block text-sm font-bold text-gray-400 mb-2">Bet Amount ($)</label>
+                                    <div class="flex gap-2">
+                                        <input type="number" id="cf-bet-amount" value="10.00" min="1" class="bg-gray-900 text-white p-3 rounded-lg w-full font-mono border border-gray-600 focus:border-blue-500 outline-none">
+                                        <button id="cf-half" class="px-3 bg-gray-700 rounded hover:bg-gray-600 font-bold text-xs">1/2</button>
+                                        <button id="cf-double" class="px-3 bg-gray-700 rounded hover:bg-gray-600 font-bold text-xs">2x</button>
+                                        <button id="cf-max" class="px-3 bg-gray-700 rounded hover:bg-gray-600 font-bold text-xs">MAX</button>
+                                    </div>
+                                </div>
+
+                                <div class="mb-6">
+                                    <label class="block text-sm font-bold text-gray-400 mb-2">Choose Side</label>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <button id="cf-select-ct" class="cf-side-btn active flex flex-col items-center p-4 bg-blue-900/40 border-2 border-blue-500 rounded-lg hover:bg-blue-900/60 transition">
+                                            <span class="text-4xl font-black text-blue-400 mb-1">CT</span>
+                                            <span class="text-xs uppercase font-bold tracking-wider">Counter-Terrorist</span>
+                                        </button>
+                                        <button id="cf-select-t" class="cf-side-btn flex flex-col items-center p-4 bg-gray-900/40 border-2 border-transparent hover:border-yellow-600 rounded-lg hover:bg-yellow-900/20 transition">
+                                            <span class="text-4xl font-black text-yellow-500 mb-1">T</span>
+                                            <span class="text-xs uppercase font-bold tracking-wider text-gray-400">Terrorist</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button id="cf-play-btn" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-4 rounded-lg shadow-lg text-xl transition transform active:scale-95">
+                                    Flip Coin
+                                </button>
+                                <p id="cf-status" class="text-center mt-4 text-sm font-mono text-gray-400 h-5"></p>
+                            </div>
+
+                            <!-- Animation Area -->
+                            <div class="bg-gray-800/50 p-8 rounded-xl border border-gray-700 flex flex-col items-center justify-center min-h-[400px]">
+                                <div class="coin-container mb-8">
+                                    <div id="coin" class="coin">
+                                        <div class="coin-face side-ct">CT</div>
+                                        <div class="coin-face side-t">T</div>
+                                    </div>
+                                </div>
+                                <div id="cf-result-display" class="text-center opacity-0 transition-opacity duration-500">
+                                    <h3 class="text-2xl font-bold text-white mb-1">Waiting...</h3>
+                                    <p class="text-gray-400">Place your bet to start</p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- CASE BATTLE GAME -->
+                    <div id="game-casebattle" class="game-view hidden">
+                        <div class="flex flex-col gap-6">
+                            <!-- Setup -->
+                            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 flex flex-col md:flex-row items-center gap-6 justify-between">
+                                <div>
+                                    <h3 class="text-xl font-bold text-white">1v1 Bot Battle</h3>
+                                    <p class="text-gray-400 text-sm">Winner takes all items. In case of draw, bets are refunded.</p>
+                                </div>
+                                <div class="flex items-center gap-4 w-full md:w-auto">
+                                    <select id="cb-case-select" class="bg-gray-900 text-white p-3 rounded border border-gray-600 flex-grow md:w-64">
+                                        <!-- Populated by JS -->
+                                    </select>
+                                    <button id="cb-start-btn" class="bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-8 rounded shadow-lg whitespace-nowrap transition active:scale-95">
+                                        Create Battle
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Battle Arena -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[400px]">
+                                <!-- Player Side -->
+                                <div class="battle-slot bg-gray-800 rounded-xl border border-gray-700 p-4 flex flex-col relative overflow-hidden" id="cb-player-slot">
+                                    <div class="flex items-center gap-3 border-b border-gray-700 pb-3 mb-4">
+                                        <div class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center font-bold">YOU</div>
+                                        <div>
+                                            <p class="font-bold text-white">Player</p>
+                                            <p class="text-xs text-gray-400" id="cb-player-val">$0.00</p>
+                                        </div>
+                                        <div class="ml-auto text-2xl" id="cb-player-result-icon"></div>
+                                    </div>
+                                    
+                                    <div class="flex-1 flex items-center justify-center" id="cb-player-item-container">
+                                        <div class="text-gray-600 font-bold text-6xl opacity-20">?</div>
+                                    </div>
+                                </div>
+
+                                <!-- Bot Side -->
+                                <div class="battle-slot bg-gray-800 rounded-xl border border-gray-700 p-4 flex flex-col relative overflow-hidden" id="cb-bot-slot">
+                                    <div class="flex items-center gap-3 border-b border-gray-700 pb-3 mb-4">
+                                        <div class="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center font-bold">BOT</div>
+                                        <div>
+                                            <p class="font-bold text-white">Bot</p>
+                                            <p class="text-xs text-gray-400" id="cb-bot-val">$0.00</p>
+                                        </div>
+                                        <div class="ml-auto text-2xl" id="cb-bot-result-icon"></div>
+                                    </div>
+
+                                    <div class="flex-1 flex items-center justify-center" id="cb-bot-item-container">
+                                        <div class="text-gray-600 font-bold text-6xl opacity-20">?</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
 
                 <!-- TRADE UP PAGE -->
                 <div id="tradeup-page" class="page">
@@ -756,6 +946,37 @@
         const missionsGrid = document.getElementById('missions-grid');
         const missionTimer = document.getElementById('mission-timer');
         const missionsBadge = document.getElementById('missions-badge');
+        
+        // --- GAMES ELEMENTS ---
+        const tabCoinflip = document.getElementById('tab-coinflip');
+        const tabCasebattle = document.getElementById('tab-casebattle');
+        const gameCoinflip = document.getElementById('game-coinflip');
+        const gameCasebattle = document.getElementById('game-casebattle');
+        
+        // Coinflip
+        const cfBetAmount = document.getElementById('cf-bet-amount');
+        const cfHalf = document.getElementById('cf-half');
+        const cfDouble = document.getElementById('cf-double');
+        const cfMax = document.getElementById('cf-max');
+        const cfSelectCt = document.getElementById('cf-select-ct');
+        const cfSelectT = document.getElementById('cf-select-t');
+        const cfPlayBtn = document.getElementById('cf-play-btn');
+        const cfStatus = document.getElementById('cf-status');
+        const coin = document.getElementById('coin');
+        const cfResultDisplay = document.getElementById('cf-result-display');
+        
+        // Case Battle
+        const cbCaseSelect = document.getElementById('cb-case-select');
+        const cbStartBtn = document.getElementById('cb-start-btn');
+        const cbPlayerSlot = document.getElementById('cb-player-slot');
+        const cbBotSlot = document.getElementById('cb-bot-slot');
+        const cbPlayerItemContainer = document.getElementById('cb-player-item-container');
+        const cbBotItemContainer = document.getElementById('cb-bot-item-container');
+        const cbPlayerVal = document.getElementById('cb-player-val');
+        const cbBotVal = document.getElementById('cb-bot-val');
+        const cbPlayerResultIcon = document.getElementById('cb-player-result-icon');
+        const cbBotResultIcon = document.getElementById('cb-bot-result-icon');
+
 
         // --- 3.1 AUDIO SETUP ---
         
@@ -964,6 +1185,8 @@
                 renderTradeUpPage();
             } else if (pageId === 'missions-page') {
                 renderMissionsPage();
+            } else if (pageId === 'games-page') {
+                initGamesTab();
             }
         }
 
@@ -2025,6 +2248,263 @@
         };
 
 
+        // --- 14. GAMES LOGIC (NEW) ---
+
+        // Coinflip State
+        let cfSelectedSide = 'CT'; // 'CT' or 'T'
+        let isFlipping = false;
+
+        function initGamesTab() {
+            // Setup Game Tabs
+            tabCoinflip.onclick = () => switchGameTab('coinflip');
+            tabCasebattle.onclick = () => switchGameTab('casebattle');
+            
+            // Setup Coinflip
+            setupCoinflip();
+            
+            // Setup Case Battle
+            populateCaseBattleSelect();
+            cbStartBtn.onclick = startCaseBattle;
+        }
+
+        function switchGameTab(game) {
+            if(game === 'coinflip') {
+                tabCoinflip.classList.add('active', 'border-b-blue-500', 'text-white');
+                tabCoinflip.classList.remove('text-gray-400', 'border-transparent');
+                tabCasebattle.classList.remove('active', 'border-b-blue-500', 'text-white');
+                tabCasebattle.classList.add('text-gray-400', 'border-transparent');
+                
+                gameCoinflip.classList.remove('hidden');
+                gameCasebattle.classList.add('hidden');
+            } else {
+                tabCasebattle.classList.add('active', 'border-b-blue-500', 'text-white');
+                tabCasebattle.classList.remove('text-gray-400', 'border-transparent');
+                tabCoinflip.classList.remove('active', 'border-b-blue-500', 'text-white');
+                tabCoinflip.classList.add('text-gray-400', 'border-transparent');
+                
+                gameCasebattle.classList.remove('hidden');
+                gameCoinflip.classList.add('hidden');
+            }
+        }
+
+        // --- COINFLIP IMPLEMENTATION ---
+        
+        function setupCoinflip() {
+            // Side Selection
+            cfSelectCt.onclick = () => {
+                cfSelectedSide = 'CT';
+                cfSelectCt.classList.add('active', 'bg-blue-900/40', 'border-blue-500');
+                cfSelectCt.classList.remove('border-transparent');
+                cfSelectT.classList.remove('active', 'bg-yellow-900/40', 'border-yellow-500');
+                cfSelectT.classList.add('border-transparent');
+            };
+            
+            cfSelectT.onclick = () => {
+                cfSelectedSide = 'T';
+                cfSelectT.classList.add('active', 'bg-yellow-900/40', 'border-yellow-500');
+                cfSelectT.classList.remove('border-transparent');
+                cfSelectCt.classList.remove('active', 'bg-blue-900/40', 'border-blue-500');
+                cfSelectCt.classList.add('border-transparent');
+            };
+
+            // Bet Amount Controls
+            cfHalf.onclick = () => { cfBetAmount.value = Math.max(1, parseFloat(cfBetAmount.value) / 2).toFixed(2); };
+            cfDouble.onclick = () => { cfBetAmount.value = (parseFloat(cfBetAmount.value) * 2).toFixed(2); };
+            cfMax.onclick = () => { cfBetAmount.value = balance.toFixed(2); };
+
+            // Play Button
+            cfPlayBtn.onclick = playCoinflip;
+        }
+
+        function playCoinflip() {
+            if(isFlipping) return;
+            
+            const bet = parseFloat(cfBetAmount.value);
+            if(isNaN(bet) || bet <= 0) {
+                cfStatus.textContent = "Invalid bet amount.";
+                cfStatus.className = "text-center mt-4 text-sm font-mono text-red-500 h-5";
+                return;
+            }
+            if(bet > balance) {
+                cfStatus.textContent = "Insufficient funds.";
+                cfStatus.className = "text-center mt-4 text-sm font-mono text-red-500 h-5";
+                return;
+            }
+
+            // Deduct balance
+            updateBalance(-bet);
+            isFlipping = true;
+            cfPlayBtn.disabled = true;
+            cfStatus.textContent = "";
+            
+            // Reset visuals
+            cfResultDisplay.classList.remove('opacity-100');
+            cfResultDisplay.classList.add('opacity-0');
+            
+            // Determine Result (50/50)
+            const winningSide = Math.random() < 0.5 ? 'CT' : 'T';
+            
+            // Animation
+            const extraRotations = 5;
+            const winningRotation = winningSide === 'CT' ? 0 : 180;
+            const totalRotation = (extraRotations * 360) + winningRotation;
+            
+            // Reset rotation first without transition
+            coin.style.transition = 'none';
+            coin.style.transform = 'rotateY(0deg)';
+            
+            // Force reflow
+            void coin.offsetWidth;
+            
+            // Start Flip
+            coin.style.transition = 'transform 3s cubic-bezier(0.15, 0.9, 0.34, 1)';
+            coin.style.transform = `rotateY(${totalRotation}deg)`;
+            
+            // Play Click/Spin Sound
+            playClickSound(0.5);
+
+            setTimeout(() => {
+                isFlipping = false;
+                cfPlayBtn.disabled = false;
+                
+                const won = winningSide === cfSelectedSide;
+                
+                cfResultDisplay.classList.remove('opacity-0');
+                cfResultDisplay.classList.add('opacity-100');
+                
+                const h3 = cfResultDisplay.querySelector('h3');
+                const p = cfResultDisplay.querySelector('p');
+
+                if(won) {
+                    const payout = bet * 2;
+                    updateBalance(payout);
+                    h3.textContent = "YOU WON!";
+                    h3.className = "text-3xl font-black text-green-500 mb-1";
+                    p.textContent = `+ $${payout.toFixed(2)}`;
+                    playUnboxSound();
+                } else {
+                    h3.textContent = "YOU LOST";
+                    h3.className = "text-3xl font-black text-red-500 mb-1";
+                    p.textContent = `Better luck next time.`;
+                }
+            }, 3000);
+        }
+
+        // --- CASE BATTLE IMPLEMENTATION ---
+        
+        function populateCaseBattleSelect() {
+            cbCaseSelect.innerHTML = '';
+            Object.keys(CASES).forEach(caseId => {
+                const option = document.createElement('option');
+                option.value = caseId;
+                option.textContent = `${caseId} ($${CASES[caseId].price.toFixed(2)})`;
+                cbCaseSelect.appendChild(option);
+            });
+        }
+
+        function startCaseBattle() {
+            const caseId = cbCaseSelect.value;
+            const caseData = CASES[caseId];
+            
+            if(!caseData) return;
+            if(balance < caseData.price) {
+                showNotification("Insufficient Funds", "You cannot afford this battle.", "!", "bg-red-600");
+                return;
+            }
+
+            // Setup UI
+            updateBalance(-caseData.price);
+            cbStartBtn.disabled = true;
+            cbStartBtn.textContent = "Battling...";
+            
+            // Reset Slots
+            [cbPlayerSlot, cbBotSlot].forEach(slot => {
+                slot.classList.remove('winner', 'loser');
+                slot.style.borderColor = '#4a5568'; // gray-700
+            });
+            cbPlayerResultIcon.textContent = '';
+            cbBotResultIcon.textContent = '';
+            cbPlayerVal.textContent = '$0.00';
+            cbBotVal.textContent = '$0.00';
+            
+            cbPlayerItemContainer.innerHTML = '<div class="animate-spin text-4xl">↻</div>';
+            cbBotItemContainer.innerHTML = '<div class="animate-spin text-4xl">↻</div>';
+
+            // Simulate Results
+            const playerItem = pickRandomItem(caseId);
+            const botItem = pickRandomItem(caseId);
+            
+            // Simulate "Rolling" delay
+            setTimeout(() => {
+                // Reveal
+                revealBattleItem(cbPlayerItemContainer, playerItem);
+                revealBattleItem(cbBotItemContainer, botItem);
+                
+                cbPlayerVal.textContent = `$${playerItem.value.toFixed(2)}`;
+                cbBotVal.textContent = `$${botItem.value.toFixed(2)}`;
+                
+                // Determine Winner
+                setTimeout(() => {
+                    let playerWin = false;
+                    let draw = false;
+                    
+                    if(playerItem.value > botItem.value) playerWin = true;
+                    else if(playerItem.value === botItem.value) draw = true;
+                    
+                    if(draw) {
+                        // Refund
+                        updateBalance(caseData.price);
+                        cbPlayerResultIcon.textContent = '🤝';
+                        cbBotResultIcon.textContent = '🤝';
+                        showNotification("Draw!", "Battle ended in a draw. Bet refunded.", "🤝", "bg-blue-600");
+                    } else if(playerWin) {
+                        // Winner takes all items (add to inventory)
+                        saveItemToInventory(playerItem);
+                        saveItemToInventory(botItem);
+                        
+                        cbPlayerSlot.classList.add('winner');
+                        cbBotSlot.classList.add('loser');
+                        cbPlayerResultIcon.textContent = '👑';
+                        
+                        playUnboxSound();
+                        showNotification("Victory!", `You won the battle! Total profit: $${(playerItem.value + botItem.value - caseData.price).toFixed(2)}`, "👑", "bg-green-600");
+                    } else {
+                        // Loss
+                        cbBotSlot.classList.add('winner');
+                        cbPlayerSlot.classList.add('loser');
+                        cbBotResultIcon.textContent = '👑';
+                        cbPlayerResultIcon.textContent = '💀';
+                    }
+                    
+                    cbStartBtn.disabled = false;
+                    cbStartBtn.textContent = "Create Battle";
+
+                }, 500); // Delay after reveal before result logic
+
+            }, 2000); // Spin duration
+        }
+        
+        function revealBattleItem(container, item) {
+            container.innerHTML = '';
+            const color = RARITY_COLORS[item.rarity];
+            
+            const img = document.createElement('img');
+            img.src = item.rarity === 'Rare Special' ? RARE_ITEM_IMAGE : item.image;
+            img.className = "w-32 h-24 object-contain mb-2 drop-shadow-xl";
+            
+            const name = document.createElement('p');
+            name.className = "text-xs font-bold text-center px-2";
+            name.style.color = color;
+            name.textContent = item.name;
+            
+            container.appendChild(img);
+            container.appendChild(name);
+            
+            // Flash effect
+            container.parentElement.style.borderColor = color;
+        }
+
+
         // --- 12. INITIALIZATION ---
         
         openButton.addEventListener('click', startSpin);
@@ -2082,4 +2562,3 @@
 
 </body>
 </html>
-
