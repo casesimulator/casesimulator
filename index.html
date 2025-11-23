@@ -353,6 +353,60 @@
             border-radius: 3px;
         }
         
+        /* --- BATTLE SPINNER STYLES --- */
+        .battle-spinner-window {
+            position: relative;
+            height: 100px;
+            width: 100%;
+            background: #111827; /* gray-950 */
+            border-bottom: 1px solid #374151;
+            overflow: hidden;
+            margin-bottom: 10px;
+            border-radius: 6px;
+        }
+        .battle-spinner-track {
+            display: flex;
+            height: 100%;
+            will-change: transform;
+            /* Transition is handled via JS for timing */
+        }
+        .battle-ticker {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 100%;
+            background: #fbbf24; /* amber-400 */
+            z-index: 20;
+            box-shadow: 0 0 4px rgba(0,0,0,0.8);
+        }
+        .battle-spinner-item {
+            width: 100px; /* Fixed width for calculation */
+            height: 100%;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-right: 1px solid #1f2937;
+            position: relative;
+            background: #1f2937;
+        }
+        .battle-spinner-item img {
+            max-width: 80px;
+            max-height: 60px;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 3px rgba(0,0,0,0.3));
+        }
+        .battle-spinner-item .rarity-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+        }
+
         .game-card {
             transition: all 0.2s;
         }
@@ -631,7 +685,7 @@
                                     <!-- Amount of Cases -->
                                     <div class="md:col-span-1">
                                         <label class="block text-xs font-bold text-gray-400 mb-1 uppercase">Amount (Max 50)</label>
-                                        <input type="number" id="cb-case-amount" value="1" min="1" max="50" class="w-full bg-gray-900 text-white p-3 rounded border border-gray-600 text-center">
+                                        <input type="number" id="cb-case-amount" value="3" min="1" max="50" class="w-full bg-gray-900 text-white p-3 rounded border border-gray-600 text-center">
                                     </div>
 
                                     <!-- Amount of Bots -->
@@ -1038,6 +1092,10 @@
 
         const ITEM_WIDTH_PX = 160;
         const REEL_LENGTH = 100;
+        
+        // --- BATTLE SIM SETTINGS ---
+        const BATTLE_ITEM_WIDTH = 100; // Smaller width for battle
+        const BATTLE_SPIN_DURATION = 3500; // 3.5 seconds
 
         // --- 2. STATE VARIABLES ---
         let inventory = [];
@@ -1931,6 +1989,23 @@
             return div;
         }
 
+        // NEW: Helper for Battle Item Element (lighter, smaller)
+        function createBattleItemElement(item) {
+            const div = document.createElement('div');
+            div.className = 'battle-spinner-item';
+            
+            if(!item) return div;
+
+            const color = RARITY_COLORS[item.rarity];
+            let imageUrl = item.rarity === 'Rare Special' ? RARE_ITEM_IMAGE : item.image;
+            
+            div.innerHTML = `
+                <img src="${imageUrl}" alt="${item.name}">
+                <div class="rarity-bar" style="background-color: ${color}"></div>
+            `;
+            return div;
+        }
+
         function populateSpinner(winningItem) {
             if (!currentCaseId || !winningItem) return;
             spinnerTrack.innerHTML = ''; 
@@ -2363,7 +2438,7 @@
             }, 3000);
         }
 
-        // --- Case Battle Logic ---
+        // --- Case Battle Logic (WITH ANIMATION) ---
         
         function setupCaseBattle() {
             cbCaseSelect.innerHTML = '';
@@ -2386,7 +2461,86 @@
             updateCost();
         }
 
-        function startCaseBattle() {
+        // --- NEW BATTLE LOGIC WITH ANIMATION ---
+        
+        function spinBattleSlot(participant, winningItem, caseId) {
+            return new Promise(resolve => {
+                const track = participant.spinnerTrack;
+                if(!track) { resolve(); return; }
+
+                // 1. Clear & Populate
+                track.innerHTML = '';
+                track.style.transition = 'none';
+                track.style.transform = 'translateX(0)';
+                
+                // Fewer dummy items needed for battle than normal case due to shorter/smaller nature
+                // But enough to look like a spin
+                const BATTLE_REEL_LENGTH = 40; 
+                const items = [];
+                for(let i=0; i<BATTLE_REEL_LENGTH; i++) items.push(pickRandomItem(caseId));
+                items[BATTLE_REEL_LENGTH - 4] = winningItem; // Landing position
+                
+                items.forEach(item => {
+                    track.appendChild(createBattleItemElement(item));
+                });
+
+                // 2. Trigger Animation
+                const windowWidth = participant.spinnerWindow.clientWidth; 
+                const winningIndex = BATTLE_REEL_LENGTH - 4;
+                
+                // Calculate landing position to center the item
+                // Center of window: windowWidth / 2
+                // Center of item: (winningIndex * ITEM_WIDTH) + (ITEM_WIDTH / 2)
+                // Offset needed: -(ItemCenter - WindowCenter)
+                const targetPosition = (winningIndex * BATTLE_ITEM_WIDTH) + (BATTLE_ITEM_WIDTH / 2) - (windowWidth / 2);
+                
+                // Add slight randomness to center
+                const finalTranslateX = -(targetPosition + (Math.random() - 0.5) * (BATTLE_ITEM_WIDTH * 0.2));
+
+                // Force reflow
+                void track.offsetWidth;
+
+                // 3. Start Spin
+                track.style.transition = `transform ${BATTLE_SPIN_DURATION}ms cubic-bezier(0.15, 0.9, 0.3, 1)`;
+                track.style.transform = `translateX(${finalTranslateX}px)`;
+                
+                // 4. Audio Logic (Only for Player to avoid chaos)
+                if(participant.type === 'player') {
+                    let lastTickIndex = -1;
+                    let lastPos = 0;
+                    const startTime = Date.now();
+                    
+                    const trackSound = () => {
+                        const now = Date.now();
+                        if (now - startTime > BATTLE_SPIN_DURATION) return; // Stop checking
+
+                        const currentPos = track.getBoundingClientRect().left;
+                        const speedFactor = Math.min(Math.abs(currentPos - lastPos) / 40, 1.0);
+                        lastPos = currentPos;
+                        
+                        // Use the participant's specific ticker
+                        const tickerRect = participant.spinnerWindow.querySelector('.battle-ticker').getBoundingClientRect();
+                        const relativePos = tickerRect.left - currentPos;
+                        
+                        const currentIndex = Math.floor(relativePos / BATTLE_ITEM_WIDTH);
+                        
+                        if (currentIndex > lastTickIndex && lastTickIndex !== -1) {
+                            playClickSound(speedFactor);
+                        }
+                        lastTickIndex = currentIndex;
+                        requestAnimationFrame(trackSound);
+                    };
+                    requestAnimationFrame(trackSound);
+                }
+
+                // 5. Resolve
+                setTimeout(() => {
+                    resolve();
+                }, BATTLE_SPIN_DURATION + 100); // Slight buffer
+            });
+        }
+
+        async function startCaseBattle() {
             const caseId = cbCaseSelect.value;
             const caseCount = parseInt(cbCaseAmount.value);
             const botCount = parseInt(cbBotAmount.value);
@@ -2403,96 +2557,114 @@
                 return;
             }
 
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             updateBalance(-totalCost);
             cbStartBtn.disabled = true;
             cbStartBtn.textContent = "Battling...";
             
-            // Setup Arena
+            // --- Setup Arena ---
             cbBattleArena.innerHTML = '';
             const totalPlayers = botCount + 1;
             
-            // Adjust Grid Columns dynamically
             cbBattleArena.className = `grid gap-4 min-h-[400px] grid-cols-${Math.min(totalPlayers, 5)} md:grid-cols-${Math.min(totalPlayers, 5)}`;
             if(totalPlayers > 3) cbBattleArena.classList.add('lg:grid-cols-' + totalPlayers);
 
             const participants = [];
             // Player
-            participants.push({ name: 'Player', type: 'player', items: [], total: 0, element: null });
+            participants.push({ name: 'Player', type: 'player', items: [], total: 0, element: null, spinnerTrack: null, spinnerWindow: null });
             // Bots
             for(let i=0; i<botCount; i++) {
-                participants.push({ name: `Bot ${i+1}`, type: 'bot', items: [], total: 0, element: null });
+                participants.push({ name: `Bot ${i+1}`, type: 'bot', items: [], total: 0, element: null, spinnerTrack: null, spinnerWindow: null });
             }
 
             // Create UI Slots
             participants.forEach((p, index) => {
                 const slot = document.createElement('div');
-                slot.className = 'battle-slot bg-gray-800 rounded-xl border border-gray-700 p-4 flex flex-col relative';
+                slot.className = 'battle-slot bg-gray-800 rounded-xl border border-gray-700 p-2 flex flex-col relative';
                 
                 const badgeColor = p.type === 'player' ? 'bg-green-600' : 'bg-purple-600';
                 const badgeText = p.type === 'player' ? 'YOU' : 'BOT';
 
                 slot.innerHTML = `
-                    <div class="flex items-center gap-3 border-b border-gray-700 pb-3 mb-4">
-                        <div class="w-10 h-10 ${badgeColor} rounded-full flex items-center justify-center font-bold text-xs">${badgeText}</div>
+                    <div class="flex items-center gap-2 border-b border-gray-700 pb-2 mb-2 px-2">
+                        <div class="w-8 h-8 ${badgeColor} rounded-full flex items-center justify-center font-bold text-[10px]">${badgeText}</div>
                         <div class="min-w-0 flex-1">
-                            <p class="font-bold text-white truncate">${p.name}</p>
-                            <p class="text-xs text-gray-400 value-display">$0.00</p>
+                            <p class="font-bold text-white text-sm truncate">${p.name}</p>
+                            <p class="text-xs text-gray-400 value-display font-mono">$0.00</p>
                         </div>
-                        <div class="text-2xl result-icon"></div>
+                        <div class="text-xl result-icon"></div>
                     </div>
-                    <div class="flex-1 items-container space-y-2 overflow-y-auto pr-1 max-h-[500px] flex flex-col items-center">
+                    
+                    <!-- SPINNER WINDOW -->
+                    <div class="battle-spinner-window">
+                        <div class="battle-ticker"></div>
+                        <div class="battle-spinner-track"></div>
+                    </div>
+
+                    <div class="flex-1 items-container space-y-1 overflow-y-auto pr-1 max-h-[400px] flex flex-col items-center p-1 bg-gray-900/30 rounded-lg">
                         <!-- Items appended here -->
                     </div>
                 `;
                 cbBattleArena.appendChild(slot);
                 p.element = slot;
+                p.spinnerWindow = slot.querySelector('.battle-spinner-window');
+                p.spinnerTrack = slot.querySelector('.battle-spinner-track');
             });
 
-            // --- Sequential Simulation Logic ---
-            let currentRound = 0;
             updateMissionProgress('casebattle_play', 1);
 
-            const battleInterval = setInterval(() => {
-                currentRound++;
-                playClickSound();
-
-                // Process Round
-                participants.forEach(p => {
+            // --- Async Game Loop ---
+            for (let round = 1; round <= caseCount; round++) {
+                
+                // 1. Generate Results
+                const roundResults = participants.map(p => {
                     const item = pickRandomItem(caseId);
+                    return { participant: p, item: item };
+                });
+
+                // 2. Trigger Animations
+                const spinPromises = roundResults.map(res => {
+                    return spinBattleSlot(res.participant, res.item, caseId);
+                });
+
+                // 3. Wait for spins
+                await Promise.all(spinPromises);
+
+                // 4. Update UI & History
+                roundResults.forEach(res => {
+                    const p = res.participant;
+                    const item = res.item;
+                    
                     p.items.push(item);
                     p.total += item.value;
 
-                    // Render item for this round
+                    // Add to history list
                     const container = p.element.querySelector('.items-container');
                     const valueDisplay = p.element.querySelector('.value-display');
                     
                     const color = RARITY_COLORS[item.rarity];
                     const el = document.createElement('div');
-                    el.className = `flex items-center gap-2 bg-gray-900/50 p-2 rounded w-full border-l-4 border-[${color}] animate-[fadeIn_0.3s_ease-in-out]`;
+                    el.className = `flex items-center gap-2 bg-gray-900/80 p-1.5 rounded w-full border-l-2 border-[${color}] animate-[fadeIn_0.3s_ease-in-out]`;
                     el.style.borderColor = color;
                     
                     const imgUrl = item.rarity === 'Rare Special' ? RARE_ITEM_IMAGE : item.image;
                     
                     el.innerHTML = `
-                        <img src="${imgUrl}" class="w-12 h-8 object-contain">
-                        <div class="min-w-0">
-                            <p class="text-[10px] text-gray-300 truncate leading-tight">${item.name}</p>
-                            <p class="text-xs font-bold" style="color:${color}">$${item.value.toFixed(2)}</p>
+                        <img src="${imgUrl}" class="w-8 h-6 object-contain">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[9px] text-gray-300 truncate leading-tight">${item.name}</p>
                         </div>
+                        <p class="text-[10px] font-bold font-mono" style="color:${color}">$${item.value.toFixed(2)}</p>
                     `;
-                    container.appendChild(el);
-                    // Auto scroll to bottom
-                    container.scrollTop = container.scrollHeight;
+                    container.insertBefore(el, container.firstChild); // Newest on top
                     valueDisplay.textContent = `$${p.total.toFixed(2)}`;
                 });
 
-                // End Battle Condition
-                if(currentRound >= caseCount) {
-                    clearInterval(battleInterval);
-                    concludeBattle(participants, totalCost);
-                }
+                // Short delay between rounds
+                if (round < caseCount) await new Promise(r => setTimeout(r, 600));
+            }
 
-            }, 1500); // 1.5s per round
+            concludeBattle(participants, totalCost);
         }
 
         function concludeBattle(participants, totalCost) {
